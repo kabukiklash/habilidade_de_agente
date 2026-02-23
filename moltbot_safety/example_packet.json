@@ -1,0 +1,24 @@
+{
+    "packet_version": "v0.1",
+    "intent_id": "REQ-001-BOOTSTRAP",
+    "state": "PREFLIGHT",
+    "requested_ops": [
+        "READ_FILE",
+        "WRITE_FILE_SCOPED"
+    ],
+    "file_scope": [
+        "/workspace/genesiscore/moltbot_safety/init.log"
+    ],
+    "commands": [
+        "touch /workspace/genesiscore/moltbot_safety/init.log"
+    ],
+    "network": false,
+    "risk_level": "LOW",
+    "human_ack_required": false,
+    "expected_artifacts": [
+        "init.log"
+    ],
+    "rollback_plan": [
+        "rm /workspace/genesiscore/moltbot_safety/init.log"
+    ]
+}

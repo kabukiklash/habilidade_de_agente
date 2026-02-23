@@ -1,0 +1,11 @@
+{
+  "version": "4.0.0",
+  "timestamp": "2026-02-23T20:03:13Z",
+  "merkle_root_lite": "4ce5239c05e6370a83540a774e29fdfdad5af33c94e66c1b89fda2f5f43bb2bd",
+  "ledger_metrics": {
+    "event_count": 1,
+    "tip_hash": "ebc5c267ff02bb5d5cc3afa57c57b0c46ba2bbe4551d598f900f73579224ac96"
+  },
+  "proof_signature": "40da0e01aaee8d707ef6dcf36c14938b1792df28e151b26ae2c32c8245fa7bb8",
+  "status": "VALIDATED_MATHEMATICALLY"
+}

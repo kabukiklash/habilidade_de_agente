@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ProofBundle",
+    "type": "object",
+    "properties": {
+        "intent_id": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "SUCCESS",
+                "FAILURE",
+                "PARTIAL"
+            ]
+        },
+        "artifacts_hashes": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "tests_summary": {
+            "type": "string"
+        },
+        "scope_check": {
+            "type": "boolean"
+        },
+        "policy_report": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "intent_id",
+        "status",
+        "artifacts_hashes",
+        "scope_check"
+    ]
+}

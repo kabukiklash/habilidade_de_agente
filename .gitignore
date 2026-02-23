@@ -1,0 +1,36 @@
+# CMS Sovereign Security - Git Ignore
+# Proteger ativos de conhecimento e credenciais locais
+
+# Secrets & Environment
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+
+# Local Brain & Scratch
+scratch/
+brain/
+.gemini/antigravity/
+
+# Tech junk
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+node_modules/
+.DS_Store
+
+# Temporary assets
+tmp/
+dist/
+build/
+*.bak
+*.log
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3

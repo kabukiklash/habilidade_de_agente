@@ -1,0 +1,45 @@
+[
+  {
+    "index": 0,
+    "timestamp": "2026-01-29T02:47:41.747Z",
+    "intent_id": "TEST-CMD-001",
+    "event_type": "EXECUTION_ATTEMPT",
+    "payload": {
+      "state": "APPROVED"
+    },
+    "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "hash": "d22c516a6368ddcc812bcf5b250ed60c340b362300522c98122781519f6d1f4c",
+    "signature": "0c010d76cb672c35ad2753b0a4780ccfc78870466c5edb894c9096b22f0f2936"
+  },
+  {
+    "index": 1,
+    "timestamp": "2026-01-29T02:47:41.755Z",
+    "intent_id": "TEST-CMD-001",
+    "event_type": "EXECUTION_START",
+    "payload": {
+      "commands": [
+        "touch /workspace/genesiscore/moltbot_safety/test.log"
+      ]
+    },
+    "prev_hash": "d22c516a6368ddcc812bcf5b250ed60c340b362300522c98122781519f6d1f4c",
+    "hash": "d943cc80012f26d9b4a5a90ee1158cfae9a247bda226fb1c95d1a79d895c443e",
+    "signature": "9f6391d9f703f221f5a7db12876da95fc3f3db104eed396f72dc4a4a13bbead3"
+  },
+  {
+    "index": 2,
+    "timestamp": "2026-01-29T02:47:41.757Z",
+    "intent_id": "TEST-CMD-001",
+    "event_type": "EXECUTION_COMPLETE",
+    "payload": {
+      "results": [
+        {
+          "command": "touch /workspace/genesiscore/moltbot_safety/test.log",
+          "status": "OK"
+        }
+      ]
+    },
+    "prev_hash": "d943cc80012f26d9b4a5a90ee1158cfae9a247bda226fb1c95d1a79d895c443e",
+    "hash": "20da5a458dbcee79dd746f893bd7a9f31ad1878a12c859952dba8296cabe327e",
+    "signature": "ff6b2197a4bfa441a0fc25a595028584849c6ea1bda17b88d6412b279d81c0e5"
+  }
+]

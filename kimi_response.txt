@@ -1,0 +1,159 @@
+# RESISTOS LIVE-MIGRATION BLUEPRINT  
+Arquiteto: Kimi | Objetivo: Checkpoint/Restore “quente” de 2 GB sem perda de estado, sem travar o Windows, sem deadlock.
+
+--------------------------------------------------------------------
+1. VISÃO GERAL (10 000 pés)
+--------------------------------------------------------------------
+```
+┌-------- WinHv (Partition) ---------┐
+│ Guest VM (ResistOS)                │
+│  │ 2 GB RAM, 1 vCPU                │
+│  └─vcpu0──►Hypercall Trap          │
+└------------------------------------┘
+         │  para-virtualizado
+         ▼
+┌------------------- Serviço HV “Resist-CMS” (user-mode) ---------┐
+│ 1. Broker RPC (NamedPipe+HvCall)                                 │
+│ 2. Memory-Mirror Engine (triple-buffer)                          │
+│ 3. Quiesce-Coordinator (vcpu pause + interrupt-wrap)             │
+│ 4. Deadlock-Guard (token-ring + watch-dog)                       │
+│ 5. Restore-Player (reverse-mirror)                               │
+└-----------------------------------------------------------------┘
+```
+
+--------------------------------------------------------------------
+2. PILHA DE IPC (ZERO-COPY, LOW-LAT)
+--------------------------------------------------------------------
+Objetivo: < 2 ms para sinalizar quiesce, < 50 ms para copiar 2 GB.
+
+2.1 Hypercall custom (x64 fast-call)  
+```
+rcx = FUNCTION_ID (0x8000_00C0..0x8000_00CF)  
+rdx = GPA (guest-phys)  
+r8  = length  
+r9  = flags (bit0 = migrate, bit1 = compress, bit2 = encrypt)  
+xmm0 = 128-bit nonce (anti-replay)
+```
+Retorna: rax = 0 (OK), rax = 0xC000_0023 (retry), rax = 0xC000_009A (deadlock-risk)
+
+2.2 NamedPipe “\\\\.\pipe\resist-cms”  
+Payload = TLV  
+```
+[0] u8  ver=1  
+[1] u8  op={QUIESCE,UNQUIESCE,REPORT,RESTORE}  
+[2] u16 vcpu_mask  
+[3] u32 token_id (deadlock)  
+[4] u64 gpa_base  
+[5] u64 length  
+[6] u64 crc32c  
+```
+Pipe-mode: MESSAGE + PIPE_TYPE_MESSAGE + PIPE_NOWAIT (overlapped IOCP).
+
+2.3 Evento de porta Win32 (Global\ResistGate-{vm-guid})  
+Sinalizado pelo CMS quando buffer-job acabou; guest faz long-polling (1 ms).
+
+--------------------------------------------------------------------
+3. PROTOCOLO DE MIGRA “AO VIVO” (2 GB)
+--------------------------------------------------------------------
+Passo 0 – Preparação (off-line do utilizador)  
+a) CMS aloca 3 buffers de 64 MB cada (192 MB total) em segmentos LargePage + SecCommit.  
+b) Cria Seção com “copy-on-write” para VM inteira (API WinHv MapGpaRange).  
+c) Instala “vcpu-wrapper” no guest: 32 bytes no início de cada página identidade (0xFFFFF800.00000000) que intercepta I/O APIC (reduz para < 1 % overhead).
+
+Passo 1 – Rastreamento diferencial (dirty-page log)  
+WinHvEmulatorSelectDirtyPages(hPartition, bitmap, 2 GB/4 KB).  
+CMS recebe bitmap a cada 25 ms (taxa configurável).  
+Compressão LZ4 nível 1 (3 GB/s) – 2 GB → ~600 MB típico.
+
+Passo 2 – Quiesce-Gate (tempo de parada < 8 ms)  
+```
+CMS → guest:      Hypercall(QUIESCE_ENTER, token)  
+guest → todos vcpu: mask IRQ, set IF=0, jmp quiesce_blob (32 bytes)  
+quiesce_blob:  
+    cli  
+    movabs  rax, [rpb+token]  
+    vmcall  rax        # entra em HV  
+    sti  
+    retf
+```
+HV confirma se nenhuma spinlock interno do guest está adquirido (consulta bitmask do xsave area).  
+Se rax ≠ 0 → retry (back-off exponencial 1-2-4 ms).  
+Se 3 falhas → CMS eleva token para “FORCE” e injeta NMI; dead-lock guard toma posse.
+
+Passo 3 – Cópia tripla-buffer (“ping-pong-rcu”)  
+```
+Buffer-A: sendo copiado para rede/disco  
+Buffer-B: dirty-pages novas (ativa)  
+Buffer-C: standby (swap B↔C a cada 25 ms)
+```
+CMS usa RIO (Registered I/O) – 40 GbE → 2 GB em ~400 ms com 16 KB send-vec.
+
+Passo 4 – Unquiesce  
+CMS: Hypercall(UNQUIESCE, token) → reativar IRQ, restaura IF=1, retoma vcpu no mesmo TSC que parou (KVM hypercall KVM_GET/PUT_MSRS).
+
+--------------------------------------------------------------------
+4. DEADLOCK-GUARD (monitor contínuo)
+--------------------------------------------------------------------
+4.1 Token-ring distribuído  
+- 256 tokens rotação; guest e CMS devem possuir token para bloquear recurso.  
+- Time-out por token: 10 ms.  
+- Watch-dog em thread RT (31) do CMS: ticker de 5 ms.  
+- Se qualquer token > 30 ms → assume deadlock; CMS faz:  
+  – log minidump da VM (WinHvGetRunTimeState)  
+  – injeta NMI + dump guest-stack  
+  – força RESTORE do último checkpoint
+
+4.2 Regra de “duas fases”  
+Fase 1: só CMS pode adquirir mutex (guest roda read-side RCU)  
+Fase 2: guest pode retomar write-side após receber UNQUIESCE  
+Elimina ciclo A→B / B→A.
+
+--------------------------------------------------------------------
+5. RESTORE (rebater o filme)
+--------------------------------------------------------------------
+1. CMS aloca nova VM, mesma id.  
+2. Lê imagem (2 GB) do disco → Buffer-A.  
+3. Hypercall(RESTORE_LOAD, gpa, bufA, length) → HV preenche memória sem paginar.  
+4. Carrega CPU-state (MSR, GPR, APIC, TSC) via WinHvSetRunTimeState.  
+5. Inicia vcpu no RIP salvo; guest não percebe reboot – diário de eventos compatível.
+
+--------------------------------------------------------------------
+6. PERFORMANCE & RISCOS
+--------------------------------------------------------------------
+- Tempo fora do ar: quiesce 5-8 ms + handshake 2 ms = < 10 ms (invisível para TCP aberto).  
+- Throughput: 40 GbE → saturado com 2 GB/400 ms = 5 GB/s.  
+- CPU extra no host: 5 % (1 núcleo) para dirty-tracking + compress.  
+- Segurança: AES-GCM-256 se bit2 do hypercall; chave derivada de TPM.  
+- Rollback: até 5 checkpoints delta (forenses) sem duplicar 2 GB – base de CoW.
+
+--------------------------------------------------------------------
+7. DIAGRAMA DE SEQUÊNCIA (resumo)
+--------------------------------------------------------------------
+```
+guest-user            guest-kernel         HV              CMS
+   │                      │                 │               │
+   ── ioctl(MIGRATE,2GB) ─▶│                 │               │
+   │                      ── hypercall ──────▶│               │
+   │                      │                 ◀─── quiesce-ACK  │
+   │                      │   pause-vcpus                    │
+   │                      │                 ◀─── copy-dirty ─▶│
+   │                      │   un-pause                       │
+   │                      │                 ◀─── ACK                                
+   │                      │                 │               │──► TCP/disk
+   │                      │                 │               │
+```
+--------------------------------------------------------------------
+8. ENTREGÁVEIS DE IMPLEMENTAÇÃO
+--------------------------------------------------------------------
+- hv_resist.h – hypercall interface (C/asm)  
+- cms.exe – serviço Windows (C++20/IOCP)  
+- guest.ko – módulo ResistOS (C, GPLv2)  
+- resist_migration.idl – contrato RPC para gRPC (futuro)  
+- unittest/qemu – conjunto de 110 casos (include deadlock-sim)
+
+--------------------------------------------------------------------
+9. CONCLUSÃO
+--------------------------------------------------------------------
+Com “quiesce ultra-curto”, dirty-tracking em hardware, triplo-buffer assíncrono e token-ring anti-deadlock, conseguimos migrar ou fazer checkpoint de 2 GB de RAM do ResistOS em < 500 ms sem que o Windows perceba, sem travar o host e com zero perda de estado.  
+
+Arquitetura desenhada, protocolo validado em papel – agora é só codar!
