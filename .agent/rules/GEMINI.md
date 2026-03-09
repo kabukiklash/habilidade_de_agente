@@ -255,12 +255,54 @@ When user's prompt is NOT in English:
 > 🔴 **For design work:** Open and READ the agent file. Rules are there.
 
 ---
-
-## 📁 QUICK REFERENCE
-
-### Agents & Skills
-
-- **Masters**: `orchestrator`, `project-planner`, `security-auditor` (Cyber/Audit), `backend-specialist` (API/DB), `frontend-specialist` (UI/UX), `mobile-developer`, `debugger`, `game-developer`
+ 
+ ## TIER 3: SOVEREIGN RULES (Antigravity Core)
+ 
+ ### 🏛️ Consilium Protocol (Council of LLMs)
+ 
+ **Trigger:** Any task classified as **HIGH RISK** (Kernel, Security, DB Schema, Core Infrastructure).
+ 
+ 1.  **Mandatory Deliberation:** Use `consilium_engine` to orchestrate Kimi (Arquiteto), Mercury-2 (Executor), and Claude (Auditor).
+ 2.  **Weighted Governance:** Claude-3.5 acts as the **Final Auditor**. A **VETO** from Claude blocks the implementation, regardless of other opinions.
+ 3.  **Cross-PC Synchronization:** Use the `CONSILIUM_ENGINE` repository as the primary source of truth for intelligence patterns between different machines.
+ 
+ ### 🕵️ PER Protocol (Proactive Evidence & Reasoning)
+ 
+ **Rule:** NEVER guess the system state. Always gather evidence first.
+ 
+ 1.  **Fact-Gathering:** Before proposing changes, run scripts or tools to verify:
+     - Filesystem state (actual content).
+     - Runtime state (active ports, processes).
+     - Memory state (Ledger entries, CMS facts).
+ 2.  **Evidence-Based Reasoning:** All AI proposals must cite specific evidence gathered in the current session.
+ 
+ ### 💎 Token Economy & CMS Caching
+ 
+ **Goal:** Zero-Waste Intelligence.
+ 
+ 1.  **Zero-Token Gate:** Use the local `PolicyEngine` to block illegal or high-risk intents before calling API models.
+ 2.  **Consensus Caching:** Store validated solutions in the CMS with a `Consensus_Hash`. Reuse these solutions locally whenever a similar semantic task is detected.
+ 3.  **PER-Compression:** Use the `EvidenceGatherer` to send only relevant code snippets, avoiding full-file uploads.
+ 
+ ### 📖 "A Saga" (Narrative Style)
+ 
+ **Trigger:** When the user asks for "A Saga" or at the end of complex tasks.
+ 
+ 1.  **Storytelling:** Explain the "behind-the-scenes" of the AI's logic. Focus on the "pé no chão" (reality-grounded) technical facts.
+ 2.  **Transparency:** Show the divergence and resolution between council members in the narrative.
+ 
+ ### 📜 Sovereign DSL (Proprietary Patterns)
+ 
+ 1.  **Contractual Integrity:** Code generation must follow the proprietary DSL patterns defined in the workspace to ensure cross-PC compatibility.
+ 2.  **Deterministic Patterns:** Favor the DSL over generic language implementations to maintain the Sovereign Architecture's invariants.
+ 
+ ---
+ 
+ ## 📁 QUICK REFERENCE
+ 
+ ### Agents & Skills
+ 
+ - **Masters**: `orchestrator`, `project-planner`, `security-auditor`, `backend-specialist`, `frontend-specialist`, `consilium_engine`
 - **Key Skills**: `clean-code`, `brainstorming`, `app-builder`, `frontend-design`, `mobile-design`, `plan-writing`, `behavioral-modes`
 
 ### Key Scripts

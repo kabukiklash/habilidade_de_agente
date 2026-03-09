@@ -1,0 +1,25 @@
+# Afix Platform - Docker Compose
+# ISO 25010 Compliant | Multi-tenant
+# Backend e Frontend: npm run dev (local)
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: afix
+      POSTGRES_PASSWORD: afix_dev
+      POSTGRES_DB: afix
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+
+volumes:
+  postgres_data:

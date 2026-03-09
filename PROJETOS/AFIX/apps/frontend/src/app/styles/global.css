@@ -1,0 +1,33 @@
+/* Afix - Design System Base */
+:root {
+  --afix-primary: #2563eb;
+  --afix-secondary: #64748b;
+  --afix-accent: #0ea5e9;
+  --afix-bg: #f8fafc;
+  --afix-surface: #ffffff;
+  --afix-text: #0f172a;
+  --afix-text-muted: #64748b;
+  --afix-border: #e2e8f0;
+  --afix-radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--afix-bg);
+  color: var(--afix-text);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--afix-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

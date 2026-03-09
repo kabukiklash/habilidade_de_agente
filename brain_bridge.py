@@ -1,14 +1,20 @@
 import sys
 import os
 import json
-from llm_integration import AnthropicProvider, LLMRequest
+from llm_integration import AnthropicProvider, InceptionProvider, LLMRequest
 
-def brain_bridge(task_description, target_data=None, model="claude-3-haiku-20240307"):
+def brain_bridge(task_description, target_data=None, model="claude-3-haiku-20240307", provider_name="anthropic"):
     """
-    Antigravity Brain Bridge: Delegates heavy context tasks to Claude.
-    Used for: Code analysis, long log processing, and drafting.
+    Antigravity Brain Bridge: Delegates heavy context tasks to external LLMs.
     """
-    provider = AnthropicProvider()
+    if provider_name == "inception":
+        provider = InceptionProvider()
+        default_model = "mercury-2"
+    else:
+        provider = AnthropicProvider()
+        default_model = "claude-3-haiku-20240307"
+    
+    target_model = model if model != "claude-3-haiku-20240307" else default_model
     
     # Construct the instruction for a "Passive Auditor"
     prompt = f"""
@@ -35,19 +41,37 @@ def brain_bridge(task_description, target_data=None, model="claude-3-haiku-20240
     )
     
     try:
-        print(f"[*] Antigravity Bridge: Delegating to Anthropic ({model})...", file=sys.stderr)
+        from llm_integration.reporter import print_token_economy_report
+        import time
+        print(f"[*] Antigravity Bridge: Delegating to {provider_name.upper()} ({target_model})...", file=sys.stderr)
+        
+        start_time = time.time()
         response = provider.generate(request)
+        end_time = time.time()
+        
+        # Calculate tokens
+        tokens_used = 0
+        if hasattr(response, 'usage') and hasattr(response.usage, 'total_tokens'):
+            tokens_used = response.usage.total_tokens
+        
+        # Approximate raw context cost vs actual prompt cost
+        tokens_saved = max(0, (len(target_data) if target_data else 0) // 4 - tokens_used)
+        
+        print_token_economy_report(tokens_used, tokens_saved, int((end_time - start_time) * 1000))
+        
         return response.text
     except Exception as e:
         return f"[!] Brain Bridge Error: {str(e)}"
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python brain_bridge.py <task_description> [file_path]")
+        print("Usage: python brain_bridge.py <task_description> [file_path] [provider] [model]")
         sys.exit(1)
         
     task = sys.argv[1]
     data = ""
+    provider = "anthropic"
+    model = "claude-3-haiku-20240307"
     
     if len(sys.argv) > 2:
         file_path = sys.argv[2]
@@ -55,4 +79,10 @@ if __name__ == "__main__":
             with open(file_path, "r", encoding="utf-8") as f:
                 data = f.read()
     
-    print(brain_bridge(task, data))
+    if len(sys.argv) > 3:
+        provider = sys.argv[3]
+    
+    if len(sys.argv) > 4:
+        model = sys.argv[4]
+    
+    print(brain_bridge(task, data, model=model, provider_name=provider))

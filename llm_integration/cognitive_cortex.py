@@ -5,6 +5,7 @@ Routes tasks to Kimi k2.5 and integrates with CMS for persistent learning.
 import asyncio
 from typing import Optional, Dict, Any, List
 from .kimi_client import kimi_client
+from .inception_client import inception_client
 from .audit_monitor import audit_monitor
 from antigravity_memory_backend.memory_adapter import memory_adapter
 
@@ -41,15 +42,23 @@ class CognitiveCortex:
                     
         return curated
 
-    async def solve_task(self, task_description: str, context_query: Optional[str] = None, intent_id: Optional[str] = None) -> str:
+    async def solve_task(self, task_description: str, context_query: Optional[str] = None, intent_id: Optional[str] = None, provider: str = "kimi") -> str:
         """
         Solves a complex task by:
         1. Retrieving context from CMS.
         2. Curating context (Security Gate).
-        3. Thinking deep with Kimi.
+        3. Thinking deep with selected provider (Kimi or Inception).
         4. Verifying against drift (Audit).
         5. Recording the learning/decision with audit trail.
         """
+        # Select client
+        if provider == "inception":
+            client = inception_client
+            model_name = "mercury-2"
+        else:
+            client = kimi_client
+            model_name = "kimi-k2-turbo-preview"
+
         query = context_query or task_description
         current_intent = intent_id or f"task_{int(asyncio.get_event_loop().time())}"
         
@@ -73,10 +82,18 @@ CONTEÚDO CURADO DA MEMÓRIA (Sovereign Data):
 Pense profundamente e forneça uma solução técnica robusta.
 """
         
-        # 4. Deep Thinking via Kimi
-        print(f"🚀 [Cortex] Routing to Kimi (Thinking Mode)...")
+        import json
+        # 4. Deep Thinking via selected client
+        print(f"🚀 [Cortex] Routing to {provider.upper()} (Thinking Mode)...")
         try:
-            solution = await kimi_client.chat_thinking(prompt)
+            solution, usage = await client.chat_thinking(prompt, return_usage=True)
+            
+            # Token Economy Math
+            tokens_used = usage.get('total_tokens', 0)
+            raw_tokens_estimate = len(json.dumps(raw_context)) // 4
+            curated_tokens_estimate = len(json.dumps(context_pack)) // 4
+            tokens_saved = max(0, raw_tokens_estimate - curated_tokens_estimate)
+            print(f"💰 [Token Economy] Used: {tokens_used} | Saved by CMS: {tokens_saved}")
             
             # 5. Drift Detection
             is_drifted = await audit_monitor.check_drift(current_intent, solution)
@@ -91,7 +108,7 @@ Pense profundamente e forneça uma solução técnica robusta.
             decision_payload = {
                 "task": task_description,
                 "solution_preview": solution[:300] + "...",
-                "model": "kimi-k2-turbo-preview",
+                "model": model_name,
                 "curated_context_used": True,
                 "intent_id": current_intent
             }
@@ -108,7 +125,9 @@ Pense profundamente e forneça uma solução técnica robusta.
             await audit_monitor.log_decision_with_intent(
                 intent_id=current_intent,
                 decision_payload=decision_payload,
-                justification=f"Auditoria forense para a tarefa: {task_description[:50]}"
+                justification=f"Auditoria forense para a tarefa: {task_description[:50]}",
+                tokens_used=tokens_used,
+                tokens_saved=tokens_saved
             )
             
             return solution

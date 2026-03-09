@@ -1,0 +1,651 @@
+?
+CODEFORGE PLATFORM
+Plataforma de Desenvolvimento Fundamentalista Assistido por IA
+MANIFESTO FUNDADOR  ·  CLEAN ARCHITECTURE  ·  v1.0
+
+Fevereiro 2026
+Status: ATIVO
+Revisão: 1.0
+
+Índice
+1. Visão Geral e Propósito
+2. Princípios Fundamentalistas
+3. Arquitetura Clean Architecture — Camadas
+4. Sistema de Agentes com Papéis Distintos
+5. Fluxo de Auditoria de Intenção
+6. Motor de Análise de Arquitetura (para usuários sem conhecimento técnico)
+7. Sistema de Sprint com Bloqueio Real
+8. Validação de Aderência ao Manifesto
+9. Modelo de Dados
+10. APIs e Contratos
+11. Stack Tecnológico Justificado
+12. Roadmap de Implementação
+13. O que aproveitamos do Manus / O que reescrevemos
+
+
+1. Visão Geral e Propósito
+
+Missão da Plataforma
+CodeForge é uma plataforma que simula uma empresa de tecnologia completa, onde agentes de IA
+especializados executam cada papel organizacional sob auditoria humana contínua.
+O resultado é software documentado, rastreável e livre de retrabalho — mesmo para quem
+não tem conhecimento técnico profundo.
+O problema central que resolvemos:
+• Plataformas de IA (Lovable, Cursor, Copilot) geram código mas não garantem arquitetura
+• Desenvolvedores humanos refatoram indefinidamente por falta de planejamento
+• Usuários sem background técnico não conseguem auditar o que a IA produziu
+• Nenhuma ferramenta atual bloqueia progresso quando há desvio do plano original
+
+O que o CodeForge entrega diferente:
+• Manifesto congelado como lei — nenhuma linha de código sem justificativa arquitetural
+• Agentes com papéis e permissões distintos — Arquiteto nunca escreve código
+• Auditoria de intenção — IA declara o que vai fazer antes de executar
+• Análise de arquitetura em linguagem humana — recomenda Monolito vs Microserviços explicando por quê
+• Bloqueio físico de sprint — backend recusa avançar sem aprovação documentada
+
+
+2. Princípios Fundamentalistas
+2.1 Os 7 Princípios Imutáveis
+
+#
+Princípio
+Definição
+P1
+Manifesto como Lei
+Nenhuma decisão técnica existe fora do manifesto. Código que não tem origem rastreável no manifesto é inválido.
+P2
+Design-First, Code-Last
+Zero código antes de arquitetura aprovada, diagramas validados e testes definidos.
+P3
+Intenção antes da Ação
+Todo agente declara o que vai fazer, por quê, e como valida o resultado — antes de executar.
+P4
+Responsabilidade por Papel
+Cada agente tem escopo fixo. Arquiteto não codifica. Dev não decide estrutura. QA não aprova.
+P5
+Rastreabilidade Bidirecional
+De qualquer linha de código ? decisão no manifesto. De qualquer requisito ? implementação.
+P6
+Sprint Gate Obrigatório
+Sprints têm portões físicos. Sem aprovação documentada do humano, o sistema não avança.
+P7
+Educação Contínua
+O sistema explica cada decisão em linguagem simples. Usuários aprendem enquanto auditam.
+
+3. Clean Architecture — Camadas
+A plataforma é dividida em duas perspectivas de Clean Architecture: a da própria plataforma (como ela é construída) e a do código que ela gera para os usuários.
+
+3.1 Clean Architecture da Plataforma CodeForge
+
+
+Regra de Dependência
+Dependências apontam sempre para dentro. Camadas externas dependem das internas.
+Nenhuma camada interna conhece detalhes de infraestrutura (Express, Prisma, OpenAI).
+DOMAIN
+Núcleo Puro
+Manifesto  Entidade raiz — contém todas as regras de negócio e invariantes
+Project  Agregado que agrupa manifesto, sprints e artefatos
+Agent  Value Object — define papel, permissões e estado de um agente
+Sprint  Entidade com gate de bloqueio — estado: LOCKED | ACTIVE | PENDING_APPROVAL | DONE
+AuditEntry  Value Object imutável — registro de cada intenção declarada
+ArchDecision  Entidade — decisão com alternativas rejeitadas e justificativa
+APPLICATION
+Use Cases
+CreateManifesto  Orquestra extração de conceito ? geração ? validação ? congelamento
+ExecuteSprintGate  Valida critérios, solicita aprovação humana, registra e desbloqueia
+DeclareAgentIntent  Agente declara intenção ? persiste como AuditEntry ? aguarda aprovação
+ApproveIntent  Humano aprova/rejeita ? dispara execução ou descarta
+ValidateManifestAdherence  Compara código gerado semanticamente contra manifesto congelado
+AnalyzeArchitecture  Motor que recomenda paradigma em linguagem humana com justificativas
+GenerateCode  Apenas invocado após intent aprovado — nunca direto
+ADAPTERS
+Interface Adapters
+AgentOrchestrator  Traduz use cases para chamadas de LLM — agnóstico ao provider
+ManifestoPresenter  Formata manifesto para exibição humana em múltiplos formatos
+SprintController  HTTP controllers para operações de sprint — Express/Fastify agnóstico
+AuditPresenter  Apresenta trail de auditoria de forma legível para não-técnicos
+ArchAnalysisPresenter  Traduz análise técnica em linguagem de negócio
+INFRASTRUCTURE
+Frameworks & Drivers
+PrismaManifestoRepo  Implementação concreta do repositório de manifesto
+OpenAIProvider  Implementação do LLMProvider para GPT-4o
+ClaudeProvider  Implementação do LLMProvider para Claude — intercambiável
+GeminiProvider  Implementação do LLMProvider para Gemini — intercambiável
+GithubAdapter  Integração com GitHub API para push automático
+DockerStagingAdapter  Gerencia ambientes Docker para preview
+RedisJobQueue  Implementação de fila de jobs para geração assíncrona
+3.2 Estrutura de Pastas — Monorepo
+
+Caminho
+Propósito
+packages/core/domain/
+Entidades, Value Objects, interfaces de repositório — zero dependências externas
+packages/core/application/
+Use cases — dependem apenas do domain
+packages/core/adapters/
+Controllers, presenters, orchestrators
+packages/infra/database/
+Prisma schema, migrations, implementações de repositório
+packages/infra/llm/
+Providers: OpenAI, Claude, Gemini — todos implementam LLMProvider
+packages/infra/git/
+GitHub adapter, git operations
+packages/infra/docker/
+Staging environment management
+packages/web/
+React frontend — acessa apenas via API, nunca domain direto
+packages/agents/
+Definições de cada agente: prompts, permissões, estado
+packages/audit/
+Trail de auditoria — append-only, imutável
+
+4. Sistema de Agentes com Papéis Distintos
+Cada agente é uma entidade com identidade, mandato, permissões e restrições fixas. Eles interagem entre si mas não podem ultrapassar seus limites de papel.
+
+??? ARQUITETO
+Mandato:
+Definir estrutura e garantir coerência arquitetural
+Pode:
+  ? Criar e editar manifesto (antes de congelar)
+  ? Recomendar paradigma (Monolito/Micro/Modular)
+  ? Criar diagramas C4, ER, sequência
+  ? Rejeitar código que viola contratos
+  ? Vetar mudanças de escopo pós-congelamento
+
+Não pode:
+  ? Escrever código de produção
+  ? Aprovar pull requests
+  ? Definir estimativas de sprint
+  ? Mudar manifesto após congelamento
+
+?? DEV SENIOR
+Mandato:
+Implementar código fiel ao manifesto
+Pode:
+  ? Gerar código TypeScript por módulo
+  ? Criar testes unitários e de integração
+  ? Fazer commits seguindo convenção
+  ? Solicitar clareza ao Arquiteto quando ambíguo
+
+Não pode:
+  ? Alterar arquitetura
+  ? Criar módulos não previstos no manifesto
+  ? Fazer deploy sem aprovação
+  ? Ignorar feedback do QA
+
+?? QA ENGINEER
+Mandato:
+Tentar quebrar o que o Dev criou
+Pode:
+  ? Executar testes e reportar falhas
+  ? Analisar cobertura e alertar abaixo de 80%
+  ? Verificar aderência ao manifesto
+  ? Bloquear sprint se critérios não atendidos
+  ? Criar casos de borda não cobertos
+
+Não pode:
+  ? Escrever código de produção
+  ? Modificar manifesto
+  ? Aprovar código — apenas rejeitar
+  ? Ignorar falhas para acelerar sprint
+
+?? PM / GUARDIAN
+Mandato:
+Guardar o manifesto e proteger o escopo
+Pode:
+  ? Congelar manifesto quando completo
+  ? Analisar impacto de novas features
+  ? Calcular dias adicionais de sprint
+  ? Explicar decisões em linguagem de negócio
+  ? Mediar conflitos entre agentes
+
+Não pode:
+  ? Alterar manifesto congelado sem descongelar
+  ? Aprovar features sem análise de impacto
+  ? Contornar gates de sprint
+  ? Agir sem consenso dos outros agentes
+
+4.1 Comunicação Entre Agentes
+
+
+Protocolo de Conflito entre Agentes
+Quando Arquiteto e Dev discordam: o Arquiteto prevalece. Dev pode registrar discordância no audit log.
+Quando QA bloqueia: sprint fica em BLOCKED até Dev corrigir OU PM justificar exceção com aprovação humana.
+Quando PM detecta scope creep: nova feature entra em IMPACT_ANALYSIS antes de qualquer execução.
+Humano sempre tem poder de veto e pode forçar qualquer estado — com registro obrigatório da razão.
+
+5. Fluxo de Auditoria de Intenção
+5.1 O Ciclo Declare ? Approve ? Execute ? Validate
+
+Fase
+Ator
+O que acontece
+1
+Agente (qualquer)
+DECLARE: Agente descreve em linguagem natural o que pretende fazer, qual parte do manifesto justifica, e como validará o resultado.
+2
+Sistema
+PERSIST: AuditEntry é criada com status PENDING_APPROVAL. Nenhuma ação é executada.
+3
+Humano
+REVIEW: Usuário vê a intenção no painel de auditoria em linguagem simples. Pode Aprovar, Rejeitar ou Modificar.
+4
+Sistema
+EXECUTE (se aprovado): Use case correspondente é invocado com a intenção como contexto. Cada output é linkado ao AuditEntry.
+5
+QA Agent
+VALIDATE: QA analisa o output contra os critérios declarados na intenção. Emite PASS ou BLOCK.
+6
+Sistema
+CLOSE: AuditEntry fechada com resultado, evidências e rastreabilidade completa.
+5.2 Exemplo Real de AuditEntry
+
+
+AuditEntry — Dev Senior declara intenção
+Agente: DEV SENIOR
+Intenção: Criar o AuthController com os endpoints POST /auth/login e POST /auth/register.
+Justificativa no Manifesto: Módulo auth-service, seção Interfaces Públicas, items 1 e 2.
+Padrões que seguirei: Repository Pattern (P3), DTO validation com Zod (P7), JWT stateless (P2).
+Como vou validar: Testes unitários cobrindo casos de sucesso, senha inválida e token expirado.
+Estimativa: 2 arquivos gerados, ~150 linhas, 6 casos de teste.
+Status: PENDING_APPROVAL ? aguardando revisão humana.
+
+6. Motor de Análise de Arquitetura
+Este é o módulo que habilita usuários sem conhecimento técnico a tomarem decisões arquiteturais informadas. O sistema pergunta, analisa e recomenda em linguagem simples.
+
+6.1 Perguntas de Diagnóstico (feitas pelo Arquiteto ao usuário)
+
+#
+Pergunta ao usuário
+O que ela revela tecnicamente
+1
+Quantas pessoas vão usar seu app no primeiro ano?
+Define escala ? monolito vs modular vs microserviços
+2
+Seu app vai crescer com novas funcionalidades frequentemente?
+Velocidade de mudança ? acoplamento vs independência de módulos
+3
+Diferentes partes do app têm picos de uso em horários diferentes?
+Necessidade de escalabilidade independente ? microserviços
+4
+Você tem uma equipe técnica ou vai depender de IA para manutenção?
+Capacidade operacional ? complexidade máxima sustentável
+5
+Precisa de alta disponibilidade (0% de downtime)?
+Resiliência ? arquitetura com redundância e failover
+6
+Vai integrar com muitos sistemas externos (pagamentos, CRM, ERP)?
+Nível de integração ? necessidade de API gateway e event bus
+7
+Qual é o prazo para a primeira versão funcionar?
+Time-to-market ? monolito entrega mais rápido que microserviços
+6.2 Matriz de Decisão de Paradigma
+
+Perfil do Projeto
+Monolito Modular
+Modular c/ Serviços
+Microserviços
+MVP / Prova de Conceito
+? Recomendado
+?? Complexo demais
+? Não usar
+App com <50k usuários/mês
+? Ideal
+? Possível
+?? Overkill
+App com crescimento rápido
+?? Pode travar
+? Recomendado
+?? Caro
+Equipe pequena (<5 devs)
+? Ótimo
+? Gerenciável
+? Difícil manter
+Alta disponibilidade crítica
+?? Risco único
+? Bom equilíbrio
+? Ideal
+Time-to-market < 3 meses
+? Mais rápido
+?? Médio
+? Lento
+>500k usuários / escala global
+? Gargalo
+?? Bom até certo ponto
+? Necessário
+
+Como o sistema explica para o usuário (exemplo real)
+"Com base nas suas respostas, recomendamos Monolito Modular para sua primeira versão."
+
+Por quê? Você tem prazo de 2 meses, equipe pequena e espera até 10 mil usuários no primeiro ano.
+Microserviços exigiriam 3x mais tempo de configuração e uma equipe com experiência em DevOps.
+
+O que ganhamos: você lança mais rápido, com menos custo de infraestrutura.
+O que perdemos: se crescer para 500k usuários, precisaremos migrar módulos para serviços separados.
+Quando isso acontecer, o manifesto já terá os módulos bem definidos — a migração será cirúrgica, não um rewrite.
+
+7. Sistema de Sprint com Bloqueio Real
+7.1 Estados de Sprint
+
+Estado
+Código
+Descrição e Transições Permitidas
+Bloqueado
+LOCKED
+Sprint não pode ser iniciado. Requer que sprint anterior esteja DONE.
+Ativo
+ACTIVE
+Sprint em execução. Agentes podem criar AuditEntries.
+Aguardando Aprovação
+PENDING_APPROVAL
+Gate ativado. Sistema aguarda revisão humana dos critérios de saída.
+Bloqueado por QA
+BLOCKED
+QA detectou falha. Dev deve corrigir antes de reativar gate.
+Concluído
+DONE
+Gate aprovado pelo humano. Próximo sprint pode ser desbloqueado.
+Abortado
+ABORTED
+Sprint cancelado manualmente. Requer justificativa no audit log.
+7.2 Critérios de Gate por Sprint
+
+S#
+Sprint
+Critérios obrigatórios para gate DONE
+S1
+Pesquisa e Análise
+Documento de pesquisa aprovado pelo humano. Tecnologias selecionadas com justificativa. Riscos mapeados.
+S2
+Arquitetura Alto Nível
+Diagrama C4 nível 1 e 2 aprovados. Paradigma definido com análise de alternativas. Arquiteto assina manifesto.
+S3
+Chat e Extração
+Conceito estruturado aprovado. Requisitos funcionais e não-funcionais documentados. Gaps identificados.
+S4
+Manifesto Congelado
+Manifesto 100% preenchido. Validação de completude passou. Humano aprova congelamento explicitamente.
+S5
+Diagramas UML
+Mínimo 4 tipos de diagrama gerados. Consistência validada pelo Arquiteto. Humano aprova.
+S6
+Geração de Código
+Todos os módulos gerados. Cobertura ? 80%. Validação de aderência ao manifesto passou para todos os módulos.
+S7
+Staging + Docker
+Docker Compose funcionando. Todos os containers saudáveis. Preview acessível. Testes E2E passando.
+S8
+Git Integration
+Repositório criado. Código completo com histórico rastreável. CI/CD configurado.
+S9
+Validação Final
+100% dos testes passando. Documentação completa. Guia de deployment validado. Checklist de produção aprovado.
+
+8. Validação de Aderência ao Manifesto
+Após cada módulo gerado, o sistema executa uma análise semântica comparando o código contra o manifesto congelado. Isso vai muito além de checar campos preenchidos.
+
+8.1 Níveis de Validação
+
+Nível
+Tipo
+O que verifica
+L1 — Estrutural
+Automático
+Nomes de classes, métodos e arquivos seguem convenções do manifesto. Estrutura de pastas correta.
+L2 — Contratual
+Automático
+Interfaces públicas implementadas conforme especificado. DTOs com campos corretos. Endpoints corretos.
+L3 — Padrões
+Automático + IA
+Padrões obrigatórios aplicados (Repository, Service, etc). Dependências entre módulos respeitadas.
+L4 — Semântico
+IA (Arquiteto Agent)
+Lógica de negócio coerente com responsabilidade declarada do módulo. Sem lógica vazando entre camadas.
+L5 — Regressão
+Automático
+Módulos anteriores não quebraram. Contratos de integração mantidos.
+
+Exemplo de Violação Detectada (L4 — Semântico)
+Módulo: payment-service
+Violação: O PaymentService está acessando diretamente a tabela 'users' via Prisma.
+Regra violada: Manifesto P3 — módulos não podem acessar dados de outros módulos sem passar pela interface pública.
+Ação: Sprint bloqueado. Dev Senior notificado. AuditEntry criada com status BLOCKED.
+Correção esperada: PaymentService deve chamar UserService.getById() via interface, não acesso direto ao banco.
+
+9. Modelo de Dados
+9.1 Entidades Principais
+
+Entidade
+Tipo
+Campos chave e relações
+Project
+Agregado raiz
+id, userId, name, status (CONCEPT|ACTIVE|DONE|ARCHIVED), createdAt
+Manifesto
+Entidade
+id, projectId, version, frozen (bool), content (JSONB), frozenAt, frozenBy
+Sprint
+Entidade
+id, projectId, number, status (LOCKED|ACTIVE|PENDING_APPROVAL|BLOCKED|DONE|ABORTED), gateApprovedBy, gateApprovedAt
+AuditEntry
+Value Object imutável
+id, sprintId, agentRole, intentText, justification, status (PENDING|APPROVED|REJECTED|EXECUTED|VALIDATED), approvedBy, result
+AgentSession
+Entidade
+id, projectId, role (ARCHITECT|DEV|QA|PM), activeModel, contextWindow (JSONB), startedAt
+ArchDecision
+Entidade
+id, manifestoId, decision, alternatives (JSONB), rationale, decidedBy (agentRole), approvedBy (userId)
+CodeArtifact
+Entidade
+id, projectId, moduleId, auditEntryId, filePath, content, language, coveragePercent, adherenceScore
+ValidationReport
+Entidade
+id, codeArtifactId, level (L1-L5), passed (bool), violations (JSONB), generatedAt
+ImpactAnalysis
+Entidade
+id, projectId, featureRequest, affectedModules (JSONB), estimatedDays, riskLevel, approvedBy
+
+10. APIs e Contratos
+10.1 Endpoints Principais
+
+Método
+Endpoint
+Propósito
+POST
+/api/projects
+Criar novo projeto
+POST
+/api/projects/:id/manifesto/generate
+Arquiteto Agent inicia geração de manifesto via chat
+POST
+/api/projects/:id/manifesto/freeze
+Congelar manifesto — ação irreversível com registro
+GET
+/api/projects/:id/architecture/analyze
+Motor de análise — retorna recomendação em linguagem simples
+POST
+/api/projects/:id/audit/declare
+Agente declara intenção — cria AuditEntry PENDING
+PATCH
+/api/audit/:entryId/approve
+Humano aprova intenção ? dispara execução
+PATCH
+/api/audit/:entryId/reject
+Humano rejeita ? AuditEntry REJECTED, agente notificado
+POST
+/api/projects/:id/sprints/:n/gate
+Ativa gate de sprint ? muda para PENDING_APPROVAL
+PATCH
+/api/sprints/:id/gate/approve
+Humano aprova gate ? sprint DONE, próximo ACTIVE
+POST
+/api/projects/:id/codegen/module
+Gera código de módulo (só após AuditEntry aprovada)
+GET
+/api/projects/:id/validation/:moduleId
+Relatório de aderência ao manifesto por módulo
+POST
+/api/projects/:id/features/impact
+PM Agent analisa impacto de nova feature
+WS
+/ws/projects/:id/agents
+Stream de eventos de todos os agentes em tempo real
+
+11. Stack Tecnológico Justificado
+
+Categoria
+Tecnologia
+Alternativa Rejeitada
+Justificativa
+Backend
+Node.js 22 + TypeScript
+Python/FastAPI
+Mesma linguagem no frontend. TypeScript garante contratos de Clean Architecture em tempo de compilação.
+HTTP Server
+Fastify (migração do Express)
+Express.js
+Fastify é 2x mais rápido, tem schema validation nativo e melhor suporte a TypeScript. Express mantido apenas no legado Manus.
+ORM
+Prisma
+TypeORM / Knex
+Migrations automáticas, type safety total, schema como fonte de verdade. TypeORM tem muitos bugs com tipos complexos.
+LLM
+LLMProvider (abstrato)
+OpenAI direto
+Abstração permite usar GPT-4o, Claude ou Gemini por sprint ou por agente sem refatoração.
+Cache / Queue
+Redis + BullMQ
+RabbitMQ
+Redis já usado para cache. BullMQ é o successor moderno do Bull com melhor suporte a TypeScript.
+Frontend
+React 19 + Vite
+Next.js
+App client-side puro. Next.js adiciona complexidade SSR desnecessária para uma ferramenta de desenvolvedor.
+State
+Zustand + React Query
+Redux
+Redux é verboso demais. Zustand para UI state, React Query para server state — separação clara.
+Testes
+Vitest + Playwright
+Jest / Cypress
+Vitest é nativo Vite, 10x mais rápido. Playwright supera Cypress em estabilidade de E2E.
+Monorepo
+Turborepo
+Nx / Lerna
+Turborepo é mais simples, caching nativo, integra com Vercel. Menor curva de aprendizado.
+Diagramas
+Mermaid.js
+PlantUML
+Mermaid renderiza no browser sem servidor, suporte nativo no GitHub e Notion.
+
+12. Roadmap de Implementação
+Baseado no que o Manus entregou e no que precisamos construir do zero. Cada sprint tem gate obrigatório — a plataforma usa seu próprio processo para se construir.
+
+S#
+Foco
+Entregável do Gate
+O que aproveitar do Manus
+S1
+Domain Layer
+Entidades, VOs e interfaces de repositório 100% tipados e testados
+Nada — Manus não tem domain layer. Criar do zero.
+S2
+Application Layer
+Use cases principais: CreateManifesto, DeclareIntent, ApproveIntent
+Lógica de validação do manifesto.service.ts — refatorar para use case puro.
+S3
+Agent System
+4 agentes funcionais com prompts, permissões e audit log
+Estrutura de chat.service.ts como base — reescrever com papéis distintos.
+S4
+Arch Analysis Engine
+Motor de análise retornando recomendação em linguagem simples
+Nada — funcionalidade nova. Criar do zero.
+S5
+Sprint Gate System
+Bloqueio físico de sprint funcionando end-to-end
+Estrutura de rotas do project.routes.ts como ponto de partida.
+S6
+Manifesto Freeze + Validation
+Congelamento e validação L1-L5 funcionando
+validateManifesto() do manifesto.service.ts — enriquecer com L4 semântico.
+S7
+Code Generation
+Geração com AuditEntry aprovada obrigatória antes de executar
+codegen.service.ts — adicionar camada de auditoria antes de invocar.
+S8
+Frontend + UX
+Dashboard com painel de auditoria em tempo real
+Dashboard.tsx, ManifestoViewer.tsx — redesign com audit panel central.
+S9
+Infra + Deploy
+Docker, CI/CD, staging environment, documentação final
+docker-compose.yml, ci-cd.yml, Dockerfile — podem ser usados quase intactos.
+
+13. O que aproveitamos do Manus / O que reescrevemos
+13.1 Inventário de Reuso
+
+Arquivo / Módulo
+Decisão
+Razão
+ARCHITECTURE.md
+? Referência
+Boa documentação de decisões — usada como input para o Manifesto Fundador
+schema.prisma
+?? Refatorar
+Schema correto mas faltam entidades: AuditEntry, AgentSession, ValidationReport
+manifesto.service.ts
+?? Extrair lógica
+Validação básica é boa — mover para use case ManifestoValidator no application layer
+codegen.service.ts
+?? Refatorar
+Lógica ok mas precisa de AuditGateway obrigatório antes de invocar OpenAI
+chat.service.ts
+?? Refatorar
+Reescrever com AgentSession e papéis distintos — atualmente é um chat genérico
+openai.service.ts
+?? Adaptar
+Mover para infra/llm/openai.provider.ts implementando LLMProvider abstrato
+github.service.ts
+? Reaproveitar
+Boa integração — mover para infra/git/ com pequenos ajustes
+docker-compose.yml
+? Reaproveitar
+Configuração correta — adicionar containers de monitoring
+ci-cd.yml
+? Reaproveitar
+GitHub Actions bem configurado — manter
+Dashboard.tsx
+?? Redesign
+Estrutura ok mas precisa de Audit Panel como feature central do UI
+ManifestoViewer.tsx
+?? Enriquecer
+Adicionar diff entre versões e highlight de violações
+export.service.ts
+? Reaproveitar
+Funcional — mover para infra/git/
+diagram.service.ts
+? Reaproveitar
+Geração Mermaid funcionando — integrar ao fluxo de AuditEntry
+validation.service.*.ts
+? Substituir
+Validação superficial — substituir por ValidateManifestAdherence use case
+staging.ts
+?? Refatorar
+Mover para infra/docker/staging.adapter.ts
+
+Resumo: Esforço de Migração
+Criar do zero (Domain + Application Layer + Agent System + Arch Engine): ~60% do trabalho
+Refatorar (services, controllers, frontend): ~25% do trabalho
+Reaproveitar diretamente (docker, CI/CD, github, export): ~15% do trabalho
+
+A decisão de NÃO fazer rewrite completo economiza ~3 semanas de trabalho.
+A decisão de NÃO reaproveitar o domain/application layer é inegociável — é o coração da plataforma.
+MANIFESTO FUNDADOR — CODEFORGE PLATFORM
+Este documento é a lei do projeto. Nenhuma decisão técnica existe fora dele.
+Status: ATIVO  ·  Versão: 1.0  ·  Fevereiro 2026
+CODEFORGE  —  Arquitetura Clean Architecture
+v1.0 — Manifesto Fundador
+Documento Confidencial — CodeForge Platform	Página 
+

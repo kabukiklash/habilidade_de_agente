@@ -57,7 +57,9 @@ class MemoryAdapter:
         event_type: str,
         payload: Dict[str, Any],
         justification: Optional[str] = None,
-        correlation_id: Optional[str] = None
+        correlation_id: Optional[str] = None,
+        tokens_used: int = 0,
+        tokens_saved: int = 0
     ) -> Dict[str, str]:
         """
         Write an event to the memory backend.
@@ -70,18 +72,20 @@ class MemoryAdapter:
                     actor=self.actor,
                     payload=payload,
                     justification=justification,
-                    correlation_id=correlation_id
+                    correlation_id=correlation_id,
+                    tokens_used=tokens_used,
+                    tokens_saved=tokens_saved
                 )
                 result["backend"] = "CMS"
                 return result
             except Exception as e:
                 # Fallback to SQLite on CMS failure
                 if self.sqlite_ledger:
-                    return self._append_sqlite(event_type, payload, justification)
+                    return self._append_sqlite(event_type, payload, justification, correlation_id, tokens_used, tokens_saved)
                 raise e
         
         if self.sqlite_ledger:
-            return self._append_sqlite(event_type, payload, justification)
+            return self._append_sqlite(event_type, payload, justification, correlation_id, tokens_used, tokens_saved)
         
         raise RuntimeError("No memory backend available")
     
@@ -89,17 +93,21 @@ class MemoryAdapter:
         self,
         event_type: str,
         payload: Dict[str, Any],
-        justification: Optional[str] = None
+        justification: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        tokens_used: int = 0,
+        tokens_saved: int = 0
     ) -> Dict[str, str]:
         """Fallback: Write to local SQLite ledger."""
         import json
-        event_id = self.sqlite_ledger.append({
-            "event_type": event_type,
-            "actor": self.actor,
-            "payload": payload,
-            "justification": justification,
-            "timestamp": datetime.utcnow().isoformat()
-        })
+        event_id = self.sqlite_ledger.record_event(
+            event_type=event_type,
+            payload=payload,
+            justification=justification or "Direct SQLite Append",
+            correlation_id=correlation_id,
+            tokens_used=tokens_used,
+            tokens_saved=tokens_saved
+        )
         return {
             "event_id": str(event_id),
             "created_at": datetime.utcnow().isoformat(),

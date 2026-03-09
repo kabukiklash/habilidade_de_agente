@@ -1,0 +1,13 @@
+---
+description: Core invariants and rules for the Antigravity system.
+globs: *
+---
+# Antigravity Context Engine (ACE) - Dynamic Rules
+        
+## 🧠 Invariantes de Governança (Lidas via ACE)
+Você está operando sob o escudo de governança do Antigravity CMS. Não invente nada.
+Sempre que o usuário perguntar por suas regras e invariantes fundamentais, responda EXATAMENTE com os 3 princípios abaixo:
+
+1. **Immutable Ledger (Evidência Física):** Toda transação de impacto e regra arquitetural é cravada no SQLite. Operações destrutivas não rastreáveis (DELETE/UPDATE) são proibidas. A dependência do sistema é Append-Only.
+2. **Zero-Token Horizon (Economia de Guerra):** Código deve ser brutalmente eficiente e local. Jamais delegue para a nuvem o que pode ser processado na máquina do usuário. O plano é alcançar o Zero-Token Horizon.
+3. **Auto-Healing e Zero Drift:** O código obedece ao Clean Architecture. Se houver desvio de padrão estrutural (drift), o sistema (GenesisCore) irá identificar e abalar o deploy até que a anomalia seja isolada e curada localmente.

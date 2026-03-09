@@ -1,0 +1,26 @@
+{
+  "name": "afix-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma de Gestão Inteligente de Atendimento via WhatsApp | ISO 25010 Compliant",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "npm run dev -w @afix/frontend",
+    "dev:backend": "npm run start:dev -w @afix/backend",
+    "build": "npm run build -w @afix/shared && npm run build -w @afix/backend && npm run build -w @afix/frontend",
+    "test": "npm run test -w @afix/shared && npm run test -w @afix/backend && npm run test -w @afix/frontend",
+    "lint": "npm run lint --workspaces",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
