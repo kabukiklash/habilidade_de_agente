@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOVEREIGN HUB - Visual Intelligence</title>
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --bg: #0a0e14;
+            --card-bg: #161b22;
+            --text: #e6edf3;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        h1 {
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            width: 80%;
+            max-width: 1000px;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.15);
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        .card p {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+        .status {
+            margin-top: 1rem;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🦅 SOVEREIGN VISUAL HUB</h1>
+    <div class="container">
+        <a href="cms-dashboard/index.html" class="card">
+            <h2>Cognitive CMS</h2>
+            <p>Mapeamento de fatos, memórias e vetores de inteligência.</p>
+            <div class="status">TECNOLOGIA 01 MASTER</div>
+        </a>
+        <a href="investor-dashboard/index.html" class="card">
+            <h2>Investor Portal</h2>
+            <p>Métricas de performance, ROI e auditoria de decisões financeiras.</p>
+            <div class="status">OPERATIONAL INTERFACE</div>
+        </a>
+    </div>
+</body>
+</html>

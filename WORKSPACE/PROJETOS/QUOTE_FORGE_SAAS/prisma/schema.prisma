@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  config    Json     @default("{}")
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  templates ProductTemplate[]
+  quotes    Quote[]
+  logs      AuditLog[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  tenantId     String
+  email        String   @unique
+  role         String   @default("user")
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@map("users")
+}
+
+model ProductTemplate {
+  id           String   @id @default(uuid())
+  tenantId     String
+  name         String
+  fields       Json     @default("[]")
+  formulaLogic String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  quoteItems   QuoteItem[]
+
+  @@map("product_templates")
+}
+
+model Quote {
+  id         String   @id @default(uuid())
+  tenantId   String
+  userId     String
+  clientData Json
+  totalPrice Decimal  @db.Decimal(10, 2)
+  status     String   @default("draft")
+  version    Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  items      QuoteItem[]
+
+  @@map("quotes")
+}
+
+model QuoteItem {
+  id               String   @id @default(uuid())
+  quoteId          String
+  productTemplateId String
+  inputValues      Json
+  calculatedPrice  Decimal  @db.Decimal(10, 2)
+  createdAt        DateTime @default(now())
+  quote            Quote           @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  template         ProductTemplate @relation(fields: [productTemplateId], references: [id])
+
+  @@map("quote_items")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  tenantId   String
+  userId     String
+  action     String
+  entityType String
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  timestamp  DateTime @default(now())
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@map("audit_logs")
+}

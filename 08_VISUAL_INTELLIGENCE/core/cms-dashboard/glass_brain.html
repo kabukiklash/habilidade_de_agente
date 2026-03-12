@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Brain | Antigravity Control Plane</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020205;
+            --surface: #0a0a0f;
+            --primary: #00f2ff;
+            --sensor-green: #00ff88;
+            --sensor-red: #ff3366;
+            --sensor-yellow: #ffcc00;
+            --text: #e1e1e6;
+            --text-dim: #88889a;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Modern Shared Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 240px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--primary);
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-dim);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .container {
+            margin-left: 240px;
+            max-width: calc(100vw - 240px);
+            padding: 2rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: -10%;
+            background:
+                radial-gradient(circle at 15% 25%, rgba(0, 255, 136, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(0, 242, 255, 0.04) 0%, transparent 40%);
+            z-index: -1;
+        }
+
+        /* Header */
+        .header {
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(20px);
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: .5px;
+        }
+
+        .header h1 span {
+            color: var(--primary);
+        }
+
+        .header .mode-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: .7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .mode-local {
+            background: rgba(0, 255, 136, .15);
+            color: var(--sensor-green);
+            border: 1px solid rgba(0, 255, 136, .3);
+        }
+
+        .mode-remote {
+            background: rgba(0, 242, 255, .15);
+            color: var(--primary);
+            border: 1px solid rgba(0, 242, 255, .3);
+        }
+
+        /* Main Layout */
+        .main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem 2rem;
+            flex: 1;
+        }
+
+        /* Sensor Grid */
+        .sensors {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .sensor-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: border-color .3s;
+        }
+
+        .sensor-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .sensor-dot.green {
+            color: var(--sensor-green);
+            background: var(--sensor-green);
+        }
+
+        .sensor-dot.red {
+            color: var(--sensor-red);
+            background: var(--sensor-red);
+        }
+
+        .sensor-dot.yellow {
+            color: var(--sensor-yellow);
+            background: var(--sensor-yellow);
+        }
+
+        .sensor-label {
+            font-size: .8rem;
+            color: var(--text-dim);
+        }
+
+        .sensor-value {
+            font-size: .95rem;
+            font-weight: 600;
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: .8rem 1.2rem;
+            border-bottom: 1px solid var(--border);
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        /* Semantic Terminal (Anti-XSS: uses textContent only) */
+        .terminal {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .78rem;
+            padding: 1rem;
+            height: 360px;
+            overflow-y: auto;
+            line-height: 1.7;
+        }
+
+        .terminal-line {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+            word-break: break-word;
+        }
+
+        .terminal-line .ts {
+            color: var(--text-dim);
+            margin-right: .5rem;
+        }
+
+        /* Stats Counter */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 1.2rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: .7rem;
+            color: var(--text-dim);
+            margin-top: .3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Nomadic Config Form */
+        .nomad-form {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: .8rem;
+        }
+
+        .nomad-form input {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: .65rem 1rem;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .8rem;
+            outline: none;
+            transition: border-color .3s;
+        }
+
+        .nomad-form input:focus {
+            border-color: var(--primary);
+        }
+
+        .nomad-form button {
+            background: linear-gradient(135deg, rgba(0, 242, 255, .2), rgba(0, 255, 136, .2));
+            border: 1px solid rgba(0, 242, 255, .3);
+            border-radius: 8px;
+            padding: .7rem;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: .85rem;
+            cursor: pointer;
+            transition: all .3s;
+        }
+
+        .nomad-form button:hover {
+            background: linear-gradient(135deg, rgba(0, 242, 255, .35), rgba(0, 255, 136, .35));
+        }
+
+        /* Audit Trail Table */
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .78rem;
+        }
+
+        .audit-table th {
+            color: var(--text-dim);
+            font-weight: 500;
+            text-align: left;
+            padding: .6rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .audit-table td {
+            padding: .6rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+        }
+
+        .audit-table .node-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: .7rem;
+            font-weight: 600;
+            background: rgba(0, 242, 255, .1);
+            color: var(--primary);
+        }
+
+        /* Pulse animation for active envelope */
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                opacity: .4;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .pulse {
+            animation: pulse-glow 2s infinite;
+        }
+
+        @media (max-width: 900px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+            .sensors {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <!-- Sensor Strip -->
+        <div class="sensors">
+            <div class="sensor-card">
+                <div id="sensorCMS" class="sensor-dot red"></div>
+                <div>
+                    <div class="sensor-label">CMS Database</div>
+                    <div id="sensorCMSValue" class="sensor-value">Verificando...</div>
+                </div>
+            </div>
+            <div class="sensor-card">
+                <div id="sensorTunnel" class="sensor-dot red"></div>
+                <div>
+                    <div class="sensor-label">Cloudflare Tunnel</div>
+                    <div id="sensorTunnelValue" class="sensor-value">Offline</div>
+                </div>
+            </div>
+            <div class="sensor-card">
+                <div id="sensorUplink" class="sensor-dot red"></div>
+                <div>
+                    <div class="sensor-label">ACE Uplink</div>
+                    <div id="sensorUplinkValue" class="sensor-value">Desconhecido</div>
+                </div>
+            </div>
+            <div class="sensor-card">
+                <div id="sensorOutbox" class="sensor-dot green"></div>
+                <div>
+                    <div class="sensor-label">Outbox Queue</div>
+                    <div id="sensorOutboxValue" class="sensor-value">0 pendentes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Left: Semantic Terminal -->
+        <div class="panel">
+            <div class="panel-header">⚡ Terminal Semântico (Ao Vivo)</div>
+            <div id="terminal" class="terminal">
+                <div class="terminal-line"><span class="ts">[BOOT]</span> Glass Brain inicializado. Aguardando
+                    eventos...</div>
+            </div>
+        </div>
+
+        <!-- Right: Stats + Nomadic Config -->
+        <div style="display:flex; flex-direction:column; gap:1.5rem;">
+            <!-- Stats -->
+            <div class="panel" style="flex:1;">
+                <div class="panel-header">📊 Hodômetro de Economia</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div id="totalTokens" class="stat-value">0</div>
+                        <div class="stat-label">Tokens Salvos</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="totalAudits" class="stat-value">0</div>
+                        <div class="stat-label">Auditorias</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="activeNodes" class="stat-value">0</div>
+                        <div class="stat-label">Nós Ativos</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="efficiency" class="stat-value">0%</div>
+                        <div class="stat-label">Eficiência</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nomadic Config -->
+            <div class="panel">
+                <div class="panel-header">🌐 Configuração Nômade</div>
+                <div class="nomad-form">
+                    <input id="remoteUrl" type="text"
+                        placeholder="URL do Cloudflare (ex: https://xyz.trycloudflare.com)">
+                    <input id="apiKey" type="password" placeholder="API Key (ACE_SECRET_KEY)">
+                    <button id="btnConnect" onclick="connectRemote()">Levantar Âncora 🚀</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Width: Audit Trail -->
+        <div class="panel" style="grid-column: 1 / -1;">
+            <div class="panel-header">📝 Trilha de Auditoria Cognitiva (Últimos Registros)</div>
+            <div style="overflow-x:auto; max-height: 260px; overflow-y: auto;">
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Nó</th>
+                            <th>Contexto</th>
+                            <th>Tokens</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CMS_BASE = window.location.origin;
+
+        // EVO-03/06: Extract API Key from URL to pass to fetches
+        const urlParams = new URLSearchParams(window.location.search);
+        const CURRENT_API_KEY = urlParams.get('api_key') || '';
+
+        if (CURRENT_API_KEY) {
+            document.getElementById('apiKey').value = CURRENT_API_KEY;
+        }
+
+        // ============================================================
+        // Anti-XSS: Safe DOM insertion — NEVER use innerHTML for data
+        // ============================================================
+        function safeAppendTerminal(text) {
+            const terminal = document.getElementById('terminal');
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+
+            const ts = document.createElement('span');
+            ts.className = 'ts';
+            ts.textContent = `[${new Date().toLocaleTimeString()}]`;
+
+            const msg = document.createElement('span');
+            msg.textContent = ' ' + text;
+
+            line.appendChild(ts);
+            line.appendChild(msg);
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+
+            // Keep max 200 lines
+            while (terminal.children.length > 200) {
+                terminal.removeChild(terminal.firstChild);
+            }
+        }
+
+        function setSensor(dotId, valueId, color, text) {
+            const dot = document.getElementById(dotId);
+            const val = document.getElementById(valueId);
+            dot.className = `sensor-dot ${color}`;
+            val.textContent = text;
+        }
+
+        function getAuthHeaders() {
+            return CURRENT_API_KEY ? { 'X-ACE-API-KEY': CURRENT_API_KEY } : {};
+        }
+
+        // ============================================================
+        // Sensor Polling (5s interval)
+        // ============================================================
+        async function pollSensors() {
+            try {
+                // CMS Health (Public)
+                const healthRes = await fetch(`${CMS_BASE}/health`, { signal: AbortSignal.timeout(3000) });
+                if (healthRes.ok) {
+                    setSensor('sensorCMS', 'sensorCMSValue', 'green', 'Online');
+                } else {
+                    setSensor('sensorCMS', 'sensorCMSValue', 'red', 'Erro');
+                }
+            } catch {
+                setSensor('sensorCMS', 'sensorCMSValue', 'red', 'Offline');
+            }
+
+            try {
+                // Audit Stats (Protected)
+                const statsRes = await fetch(`${CMS_BASE}/audits/stats`, { headers: getAuthHeaders() });
+                if (statsRes.ok) {
+                    const stats = await statsRes.json();
+                    document.getElementById('totalTokens').textContent = (stats.total_tokens_saved || 0).toLocaleString();
+                    document.getElementById('totalAudits').textContent = (stats.total_audits || 0).toLocaleString();
+                    document.getElementById('activeNodes').textContent = stats.active_nodes || 0;
+                }
+            } catch { /* silent */ }
+
+            try {
+                // Event Stats (efficiency) - Protected
+                const eRes = await fetch(`${CMS_BASE}/tables/events/stats`, { headers: getAuthHeaders() });
+                if (eRes.ok) {
+                    const e = await eRes.json();
+                    document.getElementById('efficiency').textContent = (e.efficiency_percent || 0) + '%';
+                }
+            } catch { /* silent */ }
+        }
+
+        // ============================================================
+        // Audit History Loader
+        // ============================================================
+        async function loadAuditHistory() {
+            try {
+                const res = await fetch(`${CMS_BASE}/audits/history?limit=20`, { headers: getAuthHeaders() });
+                if (!res.ok) return;
+                const { data } = await res.json();
+                const tbody = document.getElementById('auditBody');
+                tbody.innerHTML = ''; // Safe: we rebuild with textContent below
+
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+
+                    const tdTime = document.createElement('td');
+                    tdTime.textContent = new Date(row.timestamp).toLocaleString();
+
+                    const tdNode = document.createElement('td');
+                    const badge = document.createElement('span');
+                    badge.className = 'node-badge';
+                    badge.textContent = row.source_node;
+                    tdNode.appendChild(badge);
+
+                    const tdCtx = document.createElement('td');
+                    tdCtx.textContent = row.event_context || row.raw_ai_learning?.substring(0, 80) || '—';
+
+                    const tdTokens = document.createElement('td');
+                    tdTokens.textContent = '+' + (row.saved_tokens || 0).toLocaleString();
+                    tdTokens.style.color = 'var(--sensor-green)';
+                    tdTokens.style.fontWeight = '600';
+
+                    tr.appendChild(tdTime);
+                    tr.appendChild(tdNode);
+                    tr.appendChild(tdCtx);
+                    tr.appendChild(tdTokens);
+                    tbody.appendChild(tr);
+                });
+            } catch { /* silent */ }
+        }
+
+        // ============================================================
+        // Nomadic Config
+        // ============================================================
+        async function connectRemote() {
+            const url = document.getElementById('remoteUrl').value.trim();
+            const key = document.getElementById('apiKey').value.trim();
+            if (!url || !key) {
+                safeAppendTerminal('⚠️ Preencha a URL e a API Key para conectar.');
+                return;
+            }
+
+            try {
+                // Targets the ACE local server on port 8095
+                const res = await fetch('http://localhost:8095/api/config_remote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ remote_url: url, api_key: key })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    safeAppendTerminal(`🌐 Modo Nômade ATIVADO! CMS: ${data.remote_url}`);
+                    const badge = document.getElementById('modeBadge');
+                    badge.textContent = 'NÔMADE';
+                    badge.className = 'mode-badge mode-remote';
+                } else {
+                    safeAppendTerminal('❌ Falha ao configurar modo nômade.');
+                }
+            } catch (e) {
+                safeAppendTerminal(`❌ ACE local inacessível (porta 8095): ${e.message}`);
+            }
+        }
+
+        // ============================================================
+        // WebSocket (Semantic Terminal Feed)
+        // ============================================================
+        function connectWebSocket() {
+            try {
+                // EVO-01 Handshake: websocket_handshake_auth expects {"auth": "key"}
+                const wsUrl = `ws://${window.location.host}/stream/ws`;
+                const ws = new WebSocket(wsUrl);
+
+                ws.onopen = () => {
+                    setSensor('sensorUplink', 'sensorUplinkValue', 'green', 'Conectado');
+                    // Send mandatory handshake (EVO-01)
+                    if (CURRENT_API_KEY) {
+                        ws.send(JSON.stringify({ auth: CURRENT_API_KEY }));
+                        safeAppendTerminal('🔐 Handshake de segurança enviado.');
+                    }
+                };
+
+                ws.onmessage = (e) => {
+                    try {
+                        const data = JSON.parse(e.data);
+                        if (data.tipo === 'log_traduzido') {
+                            safeAppendTerminal(data.mensagem);
+                        } else {
+                            safeAppendTerminal(e.data);
+                        }
+                    } catch {
+                        safeAppendTerminal(e.data);
+                    }
+                    loadAuditHistory();
+                };
+                ws.onclose = () => {
+                    setSensor('sensorUplink', 'sensorUplinkValue', 'yellow', 'Reconectando...');
+                    setTimeout(connectWebSocket, 5000);
+                };
+                ws.onerror = () => {
+                    setSensor('sensorUplink', 'sensorUplinkValue', 'red', 'Erro WS');
+                };
+            } catch {
+                setTimeout(connectWebSocket, 5000);
+            }
+        }
+
+        // ============================================================
+        // Boot
+        // ============================================================
+        pollSensors();
+        loadAuditHistory();
+        connectWebSocket();
+        setInterval(pollSensors, 5000);
+        setInterval(loadAuditHistory, 15000);
+        // Preserve API Key during navigation
+        function navigate(page) {
+            if (CURRENT_API_KEY) {
+                window.location.href = `${page}?api_key=${CURRENT_API_KEY}`;
+            } else {
+                window.location.href = page;
+            }
+        }
+    </script>
+</body>
+
+</html>

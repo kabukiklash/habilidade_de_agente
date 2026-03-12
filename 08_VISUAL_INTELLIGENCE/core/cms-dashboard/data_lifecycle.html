@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Data Lifecycle | The Shredder</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #04040a;
+            --surface: #0e0e1a;
+            --primary: #00f2ff;
+            --accent: #ff007a;
+            --danger: #ff4d4d;
+            --text: #e1e1e6;
+            --text-dim: #606070;
+            --border: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Global Nav */
+        .global-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 3rem;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text);
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+
+        .nav-logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-status {
+            font-family: 'JetBrains Mono';
+            font-size: 0.7rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            width: 100%;
+            position: relative;
+        }
+
+        header {
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .main-container {
+            display: flex;
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            width: 320px;
+            background: rgba(14, 14, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .shredder-zone {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(to top, var(--danger) 0%, transparent 100%);
+            opacity: 0.1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono';
+            font-weight: 700;
+            color: var(--danger);
+            letter-spacing: 10px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono';
+            color: var(--primary);
+        }
+
+        .btn-shred {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .info-panel {
+            position: absolute;
+            left: 3rem;
+            top: 3rem;
+            max-width: 400px;
+            z-index: 10;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .subtitle {
+            color: var(--primary);
+            font-family: 'JetBrains Mono';
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="global-nav">
+        <a href="index.html" class="nav-logo">ANTIGRAVITY <span>CMS</span></a>
+        <div class="nav-links">
+            <a href="report_analysis.html">Analysis</a>
+            <a href="neural_interface.html">Brain</a>
+            <a href="roi_simulator.html">ROI</a>
+            <a href="audit_timeline.html">Audit</a>
+            <a href="data_lifecycle.html">Lifecycle</a>
+            <a href="knowledge_map.html">Map</a>
+        </div>
+        <div class="nav-status">● SYSTEM_LIVE</div>
+    </nav>
+
+    <div class="main-wrapper">
+        <header>
+            <div style="font-weight: 700; font-size: 1.2rem;">CMS <span style="color: var(--danger);">SHREDDER</span>
+            </div>
+            <div style="font-size: 0.8rem; font-family: 'JetBrains Mono'; color: var(--text-dim);">MODE:
+                PRIVACY_AUTO_ENFORCEMENT</div>
+        </header>
+
+        <div class="main-container">
+            <div class="info-panel">
+                <h1 class="title">Data<br>Lifecycle</h1>
+                <div class="subtitle">AUTOMATED TTL & PRUNING</div>
+                <p style="color: var(--text-dim); margin-top: 2rem; line-height: 1.6;">
+                    Observe o CMS em ação gerenciando o "Direito ao Esquecimento". Dados irrelevantes ou expirados são
+                    automaticamente triturados para manter o cérebro ágil e os custos baixos.
+                </p>
+            </div>
+
+            <canvas id="lifecycleCanvas"></canvas>
+
+            <div class="shredder-zone">SHREDDER_ACTIVE</div>
+
+            <aside class="controls-overlay">
+                <div class="stat-card">
+                    <div class="stat-label">Memory Utilization</div>
+                    <div class="stat-value" id="valUtil">42.2%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Items Shredded</div>
+                    <div class="stat-value" id="valShredded">15,402</div>
+                </div>
+
+                <button class="btn-shred" id="shredBtn">Force Global Purge</button>
+
+                <div style="font-size: 0.7rem; color: var(--text-dim); line-height: 1.4;">
+                    *Policies being enforced:*<br>
+                    - TTL_EXPIRED_DATA: PURGE<br>
+                    - CONTEXT_NOISE: PRUNE<br>
+                    - PII_DETECTED: ENCRYPT_OR_FORGET
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('lifecycleCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let blocks = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class DataBlock {
+            constructor() {
+                this.reset();
+                this.y = -50 - Math.random() * 500;
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = -50;
+                this.speed = 1 + Math.random() * 3;
+                this.size = 10 + Math.random() * 30;
+                this.color = Math.random() > 0.8 ? '#ff4d4d' : '#00f2ff';
+                this.label = ["LOG", "IVAR", "TMP", "CACHE", "EVENT"][Math.floor(Math.random() * 5)];
+                this.isShredding = false;
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > height - 120) {
+                    this.isShredding = true;
+                    this.speed *= 1.2;
+                }
+                if (this.y > height) {
+                    this.reset();
+                    updateCounter();
+                }
+            }
+            draw() {
+                ctx.globalAlpha = this.isShredding ? 0.5 : 0.8;
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(this.x, this.y, this.size, this.size);
+
+                ctx.font = '8px JetBrains Mono';
+                ctx.fillStyle = this.color;
+                ctx.fillText(this.label, this.x, this.y - 5);
+            }
+        }
+
+        function init() {
+            for (let i = 0; i < 40; i++) blocks.push(new DataBlock());
+            animate();
+        }
+
+        let shreddedCount = 15402;
+        function updateCounter() {
+            shreddedCount++;
+            document.getElementById('valShredded').innerText = shreddedCount.toLocaleString();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            blocks.forEach(b => {
+                b.update();
+                b.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        document.getElementById('shredBtn').onclick = () => {
+            blocks.forEach(b => b.speed *= 5);
+            setTimeout(() => {
+                blocks.forEach(b => b.speed = 1 + Math.random() * 3);
+            }, 1000);
+        };
+
+        init();
+    </script>
+</body>
+
+</html>

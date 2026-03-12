@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Ledger Audit | Antigravity AI</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020205;
+            --surface: #0a0a0f;
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --accent: #ff007a;
+            --text: #e1e1e6;
+            --text-dim: #88889a;
+            --border: rgba(255, 255, 255, 0.08);
+            --success: #00ff88;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .global-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 3rem;
+            background: rgba(10, 10, 15, 0.8);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text);
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+
+        .nav-logo span {
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            width: 100%;
+        }
+
+        .header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            color: var(--success);
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        .total-banner {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 255, 136, 0.02) 100%);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .stat-block .value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .stat-block .label {
+            font-family: 'JetBrains Mono';
+            font-size: 0.8rem;
+            color: var(--success);
+            letter-spacing: 1px;
+            margin-top: 8px;
+        }
+
+        /* The Timeline / Audit Feed */
+        .audit-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .audit-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .audit-header {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .audit-intent {
+            padding: 15px;
+            color: #fff;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .audit-body {
+            padding: 15px;
+            color: var(--text);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .report-block {
+            color: #a0a0b0;
+        }
+
+        .report-highlight {
+            color: var(--success);
+        }
+
+        .audit-footer {
+            padding: 10px 15px;
+            background: rgba(0, 242, 255, 0.02);
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-dim);
+            padding: 3rem;
+            font-style: italic;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="global-nav">
+        <a href="index.html" class="nav-logo">ANTIGRAVITY <span>CMS</span></a>
+        <div style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--success);">● LEDGER_ONLINE</div>
+    </nav>
+
+    <div class="container">
+        <a href="index.html" class="back-link">← Voltar para Dashboard</a>
+
+        <div class="header">
+            <h1>Token Economy Ledger</h1>
+            <p>Registro imutável e auditoria de blocos de processamento com prova de eficiência.</p>
+        </div>
+
+        <div class="total-banner">
+            <div class="stat-block">
+                <div class="value" id="global-saved">--</div>
+                <div class="label">TOTAL DE TOKENS ECONOMIZADOS</div>
+            </div>
+            <div class="stat-block">
+                <div class="value" id="global-efficiency">--%</div>
+                <div class="label">EFICIÊNCIA GLOBAL (Curation)</div>
+            </div>
+        </div>
+
+        <div class="audit-feed" id="feed-container">
+            <div class="empty-state">Iniciando handshake com a base criptográfica...</div>
+        </div>
+    </div>
+
+    <script>
+        function formatDate(isoString) {
+            const d = new Date(isoString);
+            return d.toLocaleString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            }).toUpperCase();
+        }
+
+        function createAuditCard(item) {
+            const efficiency = item.tokens_used + item.tokens_saved > 0
+                ? ((item.tokens_saved / (item.tokens_used + item.tokens_saved)) * 100).toFixed(1)
+                : 0.0;
+
+            return `
+            <div class="audit-card">
+                <div class="audit-header">
+                    <span>[ ${formatDate(item.timestamp)} ]</span>
+                    <span>[ INTENT-ID: ${item.intent_id || 'UNKNOWN'} ]</span>
+                </div>
+                <div class="audit-intent">
+                    📌 TAREFA: "${item.justification || 'Operação de Background do Antigravity'}"
+                </div>
+                <div class="audit-body">
+> SYSTEM REPORT:
+==================================================
+ 📈 ANTIGRAVITY TOKEN ECONOMY REPORT
+==================================================
+ 🔹 Tokens Used   : <span class="report-block">${item.tokens_used.toLocaleString()}</span>
+ 🟩 Tokens Saved  : <span class="report-highlight">${item.tokens_saved.toLocaleString()}</span> (by CMS Curation)
+ ⚡ Efficiency    : <span class="report-highlight">${efficiency}%</span>
+==================================================</div>
+                <div class="audit-footer">
+                    <span>🔒 INTEGRITY HASH:</span>
+                    <span style="color: var(--primary);">${item.integrity_hash}</span>
+                </div>
+            </div>
+            `;
+        }
+
+        async function fetchLedgerData() {
+            try {
+                // Fetch Global Stats
+                const statsRes = await fetch('http://localhost:8090/tables/events/stats');
+                if (statsRes.ok) {
+                    const stats = await statsRes.json();
+                    document.getElementById('global-saved').innerText = stats.tokens_saved.toLocaleString();
+                    document.getElementById('global-efficiency').innerText = stats.efficiency_percent + '%';
+                }
+
+                // Fetch History Feed
+                const historyRes = await fetch('http://localhost:8090/tables/events/history?limit=50');
+                if (historyRes.ok) {
+                    const history = await historyRes.json();
+                    const container = document.getElementById('feed-container');
+
+                    if (history.data && history.data.length > 0) {
+                        container.innerHTML = history.data.map(createAuditCard).join('');
+                    } else {
+                        container.innerHTML = '<div class="empty-state">Nenhum bloco de IA foi processado ainda neste nó.</div>';
+                    }
+                }
+            } catch (error) {
+                console.error("Ledger Fetch Error:", error);
+                document.getElementById('feed-container').innerHTML =
+                    `<div class="empty-state" style="color:var(--accent)">Erro de conexão com o nó verificador CMS. (Verifique se a API está online rodando na porta 8090)</div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchLedgerData);
+    </script>
+</body>
+
+</html>

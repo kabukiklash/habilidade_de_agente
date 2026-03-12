@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS ROI Simulator | Token Burn-Rate</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050508;
+            --surface: #0c0c14;
+            --panel: rgba(20, 20, 30, 0.8);
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --accent: #ff007a;
+            --danger: #ff4d4d;
+            --success: #00ff88;
+            --text: #e1e1e6;
+            --text-dim: #88889a;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Global Nav */
+        .global-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 3rem;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text);
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+
+        .nav-logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-status {
+            font-family: 'JetBrains Mono';
+            font-size: 0.7rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .sim-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            flex-grow: 1;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .sim-panel {
+            background: var(--bg);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: relative;
+        }
+
+        .panel-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* Gauges & Bars */
+        .gauge-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .burn-bar-bg {
+            width: 100%;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .burn-bar-fill {
+            height: 100%;
+            width: 100%;
+            transition: width 0.3s ease-out;
+        }
+
+        .counter {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 4rem;
+            font-weight: 700;
+            letter-spacing: -2px;
+        }
+
+        .cost-label {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+        }
+
+        /* Overlay ROI HUD */
+        .roi-overlay {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            border: 1px solid var(--primary);
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .simulation-controls {
+            display: flex;
+            align-items: center;
+        }
+
+        .tech-sidebar {
+            width: 45%;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            padding: 3rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            z-index: 10;
+        }
+
+        .tech-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .tech-card h3 {
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-top: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tech-card p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        .efficiency-badge {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        button {
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: scale 0.2s;
+        }
+
+        button:hover {
+            scale: 1.05;
+        }
+
+        .task-list {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            height: 140px;
+            overflow-y: auto;
+            margin-top: auto;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            color: var(--text-dim);
+        }
+
+        .task-item.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="global-nav">
+        <a href="index.html" class="nav-logo">ANTIGRAVITY <span>CMS</span></a>
+        <div class="nav-links">
+            <a href="report_analysis.html">Analysis</a>
+            <a href="neural_interface.html">Brain</a>
+            <a href="roi_simulator.html">ROI</a>
+            <a href="audit_timeline.html">Audit</a>
+            <a href="data_lifecycle.html">Lifecycle</a>
+            <a href="knowledge_map.html">Map</a>
+        </div>
+        <div class="nav-status">● SYSTEM_LIVE</div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="sim-container">
+            <header>
+                <div class="logo"><span>ANTIGRAVITY</span> ROI SIMULATOR</div>
+                <div class="simulation-controls">
+                    <button id="startBtn">START ROI COMPARISON</button>
+                </div>
+            </header>
+
+            <main class="main-grid">
+                <!-- Standard AI Panel -->
+                <section class="sim-panel">
+                    <div class="panel-label">
+                        <div class="status-dot" style="background: var(--danger); box-shadow: 0 0 10px var(--danger);">
+                        </div>
+                        Standard AI (Session-Only Memory)
+                    </div>
+
+                    <div class="gauge-container">
+                        <div class="cost-label">ESTIMATED COST</div>
+                        <div class="counter" id="costStandard" style="color: var(--danger);">$0.00</div>
+                        <div class="burn-bar-bg">
+                            <div class="burn-bar-fill" id="barStandard"
+                                style="background: linear-gradient(90deg, #ff4d4d, #990000); width: 0%;"></div>
+                        </div>
+                        <div class="metric-sub"
+                            style="color: var(--text-dim); font-size: 0.8rem; font-family: 'JetBrains Mono';">
+                            TOKENS_BURNED:
+                            <span id="tokensStandard">0</span>
+                        </div>
+                    </div>
+
+                    <div class="task-list" id="logStandard">
+                        <div class="task-item active">Initializing Session...</div>
+                    </div>
+                </section>
+
+                <!-- CMS Optimized Panel -->
+                <section class="sim-panel"
+                    style="background: radial-gradient(circle at top right, rgba(0, 242, 255, 0.05) 0%, transparent 70%);">
+                    <div class="panel-label">
+                        <div class="status-dot"
+                            style="background: var(--success); box-shadow: 0 0 10px var(--success);">
+                        </div>
+                        Antigravity + CMS (Cognitive Core)
+                    </div>
+
+                    <div class="gauge-container">
+                        <div class="cost-label">ESTIMATED COST</div>
+                        <div class="counter" id="costCMS" style="color: var(--success);">$0.00</div>
+                        <div class="burn-bar-bg">
+                            <div class="burn-bar-fill" id="barCMS"
+                                style="background: linear-gradient(90deg, #00f2ff, #7000ff); width: 0%;"></div>
+                        </div>
+                        <div class="metric-sub"
+                            style="color: var(--text-dim); font-size: 0.8rem; font-family: 'JetBrains Mono';">
+                            TOKENS_BURNED:
+                            <span id="tokensCMS">0</span>
+                        </div>
+                    </div>
+
+                    <div class="task-list" id="logCMS">
+                        <div class="task-item active">Retrieving Global Context...</div>
+                    </div>
+                </section>
+            </main>
+
+            <div class="roi-overlay" id="roiOverlay" style="display: none;">
+                TOTAL SAVINGS: <span id="savingsPercent">0%</span>
+            </div>
+        </div>
+
+        <aside class="tech-sidebar">
+            <div class="sidebar-header">
+                <div class="efficiency-badge">TECHNICAL_PITCH // V.3.1</div>
+                <h2 style="font-size: 2rem; margin: 0 0 1.5rem;">Por que o CMS é o Futuro Lucrativo<br><span
+                        style="color: var(--primary);">da Inteligência Soberana</span></h2>
+            </div>
+
+            <div class="tech-card">
+                <h3>1. IA Padrão (O "Consultor que Esquece")</h3>
+                <p style="font-style: italic; margin-bottom: 1rem; color: var(--text);">Imagine contratar um consultor
+                    caro que esquece tudo no momento em que sai da sala. Toda vez que ele volta, você tem que pagar para
+                    ele ler os manuais da sua empresa novamente. </p>
+                <p><strong>Na prática:</strong> Se você rodar o mesmo processo 100 vezes em sistemas diferentes, a IA
+                    padrão "queima" tokens 100 vezes para re-analisar o que já deveria saber. É um custo que nunca para
+                    de crescer.</p>
+            </div>
+
+            <div class="tech-card" style="border-left: 4px solid var(--primary);">
+                <h3>2. CMS + Antigravity (O "Sócio que Constrói o Cérebro")</h3>
+                <p style="font-style: italic; margin-bottom: 1rem; color: var(--text);">O CMS age como um sócio sênior
+                    que registra cada detalhe do negócio em um cérebro central. Na segunda vez que você pede um
+                    relatório, ele não precisa ler o manual; ele consulta suas próprias notas estruturadas.</p>
+                <p><strong>Na prática:</strong> O CMS aprende as nuances dos seus sistemas locais. Ele não gera novos
+                    custos ao repetir processos; ele evolui a base de dados, tornando-se mais rápido e barato a cada
+                    uso.</p>
+            </div>
+
+            <div class="tech-card" style="border-color: var(--success); background: rgba(0, 255, 136, 0.02);">
+                <h3>3. O Horizonte Zero-Token (A "Independência Total")</h3>
+                <p style="font-style: italic; margin-bottom: 1rem; color: var(--text);">Eventualmente, esse "Sócio"
+                    conhece o seu negócio tão bem que não precisa mais de conselhos externos. Toda a inteligência
+                    necessária já reside no cérebro da empresa.</p>
+                <p><strong>Na prática:</strong> Quando o CMS satura o conhecimento local, a dependência de tokens
+                    externos acaba. A inteligência deixa de ser um custo mensal e passa a ser um <strong>ativo fixo da
+                        empresa</strong>, operando com custo marginal zero.</p>
+            </div>
+
+            <div
+                style="font-size: 1rem; color: var(--text-dim); line-height: 1.6; padding: 1.5rem; border: 1px dashed var(--border); border-radius: 8px;">
+                <strong style="color: var(--text); display: block; margin-bottom: 10px;">Em resumo para o
+                    Investidor:</strong>
+                O CMS transforma despesa variável (tokens que somem) em infraestrutura permanente (conhecimento que
+                fica). Quanto maior o uso, maior a soberania e menor o custo operacional.
+            </div>
+        </aside>
+    </div>
+
+
+    <script>
+        const tasks = [
+            { name: "Load DB Schema", tokens: 12000, cmsTokens: 400 },
+            { name: "Analyze Dependencies", tokens: 18000, cmsTokens: 600 },
+            { name: "Plan Migration Path", tokens: 25000, cmsTokens: 1200 },
+            { name: "Verify Security Policies", tokens: 20000, cmsTokens: 800 },
+            { name: "Generate Deployment Script", tokens: 35000, cmsTokens: 2500 }
+        ];
+
+        let currentTask = 0;
+        let running = false;
+        let totalStandard = 0;
+        let totalCMS = 0;
+
+        const costRate = 0.000015; // Average cost per token
+
+        const startBtn = document.getElementById('startBtn');
+        const costStandardEl = document.getElementById('costStandard');
+        const costCMSEl = document.getElementById('costCMS');
+        const barStandard = document.getElementById('barStandard');
+        const barCMS = document.getElementById('barCMS');
+        const tokensStandardEl = document.getElementById('tokensStandard');
+        const tokensCMSEl = document.getElementById('tokensCMS');
+        const roiOverlay = document.getElementById('roiOverlay');
+        const savingsPercentEl = document.getElementById('savingsPercent');
+        const logStandard = document.getElementById('logStandard');
+        const logCMS = document.getElementById('logCMS');
+
+        startBtn.onclick = () => {
+            if (running) return;
+            reset();
+            running = true;
+            startBtn.innerText = "SIMULATING...";
+            runNextTask();
+        };
+
+        function reset() {
+            currentTask = 0;
+            totalStandard = 0;
+            totalCMS = 0;
+            roiOverlay.style.display = 'none';
+            logStandard.innerHTML = '';
+            logCMS.innerHTML = '';
+        }
+
+        function runNextTask() {
+            if (currentTask >= tasks.length) {
+                finish();
+                return;
+            }
+
+            const task = tasks[currentTask];
+
+            // Log entry
+            logStandard.innerHTML += `<div class="task-item active">>${task.name} (Full Re-scan)</div>`;
+            logCMS.innerHTML += `<div class="task-item active">>${task.name} (Delta Sync)</div>`;
+
+            // Interval for "burning"
+            let step = 0;
+            const steps = 20;
+            const interval = setInterval(() => {
+                totalStandard += task.tokens / steps;
+                totalCMS += task.cmsTokens / steps;
+
+                updateUI();
+                step++;
+                if (step >= steps) {
+                    clearInterval(interval);
+                    currentTask++;
+                    runNextTask();
+                }
+            }, 100);
+        }
+
+        function updateUI() {
+            costStandardEl.innerText = `$${(totalStandard * costRate).toFixed(2)}`;
+            costCMSEl.innerText = `$${(totalCMS * costRate).toFixed(2)}`;
+
+            tokensStandardEl.innerText = Math.floor(totalStandard).toLocaleString();
+            tokensCMSEl.innerText = Math.floor(totalCMS).toLocaleString();
+
+            const max = 110000;
+            barStandard.style.width = (totalStandard / max * 100) + "%";
+            barCMS.style.width = (totalCMS / max * 100) + "%";
+        }
+
+        function finish() {
+            running = false;
+            startBtn.innerText = "SIMULATION COMPLETE";
+            roiOverlay.style.display = 'flex';
+            const savings = (1 - (totalCMS / totalStandard)) * 100;
+            savingsPercentEl.innerText = savings.toFixed(1) + "%";
+        }
+    </script>
+</body>
+
+</html>

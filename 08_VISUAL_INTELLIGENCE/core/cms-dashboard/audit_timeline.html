@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Time Machine | Immutable Audit Trail</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030306;
+            --surface: #0a0a0f;
+            --panel: rgba(16, 16, 26, 0.9);
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --accent: #ff007a;
+            --text: #e1e1e6;
+            --text-dim: #6a6a7a;
+            --border: rgba(0, 242, 255, 0.1);
+        }
+
+        /* Global Nav */
+        .global-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 3rem;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text);
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+
+        .nav-logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-status {
+            font-family: 'JetBrains Mono';
+            font-size: 0.7rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Ambient Glow */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, rgba(112, 0, 255, 0.03) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
+
+        /* Timeline Container */
+        .timeline-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 3rem;
+            position: relative;
+        }
+
+        .timeline-axis {
+            position: absolute;
+            left: 50px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, transparent, var(--primary), var(--secondary), transparent);
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        .scroll-area {
+            overflow-y: auto;
+            padding-left: 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+
+        .event-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .event-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        .event-card::before {
+            content: '';
+            position: absolute;
+            left: -38px;
+            top: 50%;
+            width: 12px;
+            height: 12px;
+            background: var(--bg);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 0 5px var(--primary);
+        }
+
+        .event-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-family: 'JetBrains Mono';
+            font-size: 0.75rem;
+        }
+
+        .hash {
+            color: var(--secondary);
+            font-weight: 700;
+        }
+
+        .timestamp {
+            color: var(--text-dim);
+        }
+
+        .event-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-details {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        .audit-sidebar {
+            width: 400px;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .sha-viewer {
+            background: #000;
+            padding: 1rem;
+            border: 1px dashed var(--secondary);
+            font-family: 'JetBrains Mono';
+            font-size: 0.7rem;
+            word-break: break-all;
+            color: var(--secondary);
+        }
+
+        .status-header {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        /* Glowing Button */
+        .btn-verify {
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            padding: 1rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="global-nav">
+        <a href="index.html" class="nav-logo">ANTIGRAVITY <span>CMS</span></a>
+        <div class="nav-links">
+            <a href="report_analysis.html">Analysis</a>
+            <a href="neural_interface.html">Brain</a>
+            <a href="roi_simulator.html">ROI</a>
+            <a href="audit_timeline.html">Audit</a>
+            <a href="data_lifecycle.html">Lifecycle</a>
+            <a href="knowledge_map.html">Map</a>
+        </div>
+        <div class="nav-status">● SYSTEM_LIVE</div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="timeline-wrapper">
+            <div class="timeline-axis"></div>
+            <div style="margin-bottom: 3rem;">
+                <h1 style="margin: 0; font-size: 2.5rem; letter-spacing: -1px;">Time Machine <span
+                        style="color: var(--primary);">Audit</span></h1>
+                <p style="color: var(--text-dim);">Immutable Ledger of AI Decisions & Memory Proofs</p>
+            </div>
+
+            <div class="scroll-area">
+                <div class="event-card">
+                    <div class="event-meta">
+                        <span class="timestamp">2026-02-22T21:40:05.122Z</span>
+                        <span class="hash">SHA256: 8a7c2...f3e</span>
+                    </div>
+                    <div class="event-title">Decision: Architectural Optimization</div>
+                    <div class="event-details">
+                        Memory retrieved from December 2025 regarding Budget Control. Applied policy #L882 to prune 85%
+                        of
+                        irrelevant context.
+                    </div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-meta">
+                        <span class="timestamp">2026-02-22T21:38:12.004Z</span>
+                        <span class="hash">SHA256: 2b93x...11a</span>
+                    </div>
+                    <div class="event-title">Conflict Resolution: Dependency Drift</div>
+                    <div class="event-details">
+                        Detected inconsistency between Local Brain and Cloud Knowledge. Resolved via CMS Consensus
+                        Protocol.
+                    </div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-meta">
+                        <span class="timestamp">2026-02-20T14:22:56.981Z</span>
+                        <span class="hash">SHA256: 9v11p...00z</span>
+                    </div>
+                    <div class="event-title">Policy Enforcement: Data Retention</div>
+                    <div class="event-details">
+                        Successfully archived project "GenesisCore_V1" artifacts due to TTL expiration. Integrity
+                        verified
+                        via Ledger.
+                    </div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-meta">
+                        <span class="timestamp">2026-01-15T09:00:00.000Z</span>
+                        <span class="hash">SHA256: base_genesis</span>
+                    </div>
+                    <div class="event-title">System Initialization</div>
+                    <div class="event-details">
+                        First bootstrap of the Cognitive Memory Service. Identity established and sovereign schema
+                        signed.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="audit-sidebar">
+            <div>
+                <div class="status-header">Current Selection Integrity</div>
+                <div class="sha-viewer" id="hashDisplay">
+                    8a7c293b4e1d2c3f4a5b6c7d8e9f0a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f3e</div>
+            </div>
+
+            <div>
+                <div class="status-header">Verification Status</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">VALIDATED ✓</div>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">The selected event is cryptographically linked to
+                    the
+                    previous state. No drift detected.</p>
+            </div>
+
+            <button class="btn-verify">Verify Entire Chain</button>
+
+            <div style="margin-top: auto; padding: 1rem; border: 1px solid var(--border); border-radius: 8px;">
+                <div class="status-header">Audit Metrics</div>
+                <div
+                    style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono'; font-size: 0.9rem;">
+                    <span>Total Events:</span>
+                    <span style="color: var(--primary);">154,203</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono'; font-size: 0.9rem; margin-top: 5px;">
+                    <span>Last Scan:</span>
+                    <span style="color: var(--secondary);">0.4ms ago</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+</body>
+
+</html>

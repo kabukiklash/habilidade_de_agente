@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Executive Dashboard | Antigravity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050507;
+            --surface: #0f0f13;
+            --panel: #16161e;
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --accent: #ff007a;
+            --text: #e1e1e6;
+            --text-dim: #888894;
+            --success: #00ff88;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Global Nav */
+        .global-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 3rem;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text);
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+
+        .nav-logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-status {
+            font-family: 'JetBrains Mono';
+            font-size: 0.7rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* Ambient background glow */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, rgba(112, 0, 255, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        /* Layout */
+        .sidebar {
+            width: 320px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            justify-content: space-between;
+            background: rgba(15, 15, 19, 0.8);
+            backdrop-filter: blur(20px);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            grid-template-rows: 1fr;
+            flex-grow: 1;
+            gap: 0;
+        }
+
+        /* Components */
+        .logo {
+            font-weight: 600;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .status-pill {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        /* Realtime Pulse (Left) */
+        .pulse-container {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .pulse-item {
+            margin-bottom: 1rem;
+            padding-left: 1rem;
+            border-left: 2px solid var(--secondary);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .pulse-meta {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+        }
+
+        .pulse-content {
+            color: var(--text);
+        }
+
+        /* Center Graph View */
+        .graph-view {
+            position: relative;
+            background: radial-gradient(circle at center, #111118 0%, #050507 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .graph-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .floating-card {
+            position: absolute;
+            background: rgba(22, 22, 30, 0.7);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: float 4s infinite ease-in-out;
+        }
+
+        /* Right Audit Panel */
+        .audit-panel {
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .panel-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .audit-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem;
+        }
+
+        .audit-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .audit-score {
+            color: var(--primary);
+            font-family: 'JetBrains Mono';
+            font-weight: 600;
+        }
+
+        .audit-reason {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .node {
+            fill: var(--secondary);
+            filter: drop-shadow(0 0 5px var(--secondary));
+        }
+
+        .link {
+            stroke: var(--border);
+            stroke-width: 1;
+            stroke-dasharray: 4;
+            animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash {
+            from {
+                stroke-dashoffset: 100;
+            }
+
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .metrics {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="global-nav">
+        <a href="index.html" class="nav-logo">ANTIGRAVITY <span>CMS</span></a>
+        <div class="nav-links">
+            <a href="report_analysis.html">Analysis</a>
+            <a href="neural_interface.html">Brain</a>
+            <a href="roi_simulator.html">ROI</a>
+            <a href="audit_timeline.html">Audit</a>
+            <a href="data_lifecycle.html">Lifecycle</a>
+            <a href="knowledge_map.html">Map</a>
+        </div>
+        <div class="nav-status">● SYSTEM_LIVE</div>
+    </nav>
+
+    <div class="main-wrapper">
+        <aside class="sidebar">
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--border)">
+                <div class="logo"><span>ANTIGRAVITY</span> CMS</div>
+            </div>
+            <div class="panel-title" style="padding: 1.5rem 1.5rem 0.5rem">REALTIME MEMORY PULSE</div>
+            <div class="pulse-container">
+                <div class="pulse-item">
+                    <div class="pulse-meta">17:58:12 - DECISION</div>
+                    <div class="pulse-content">Activated Cognitive Cortex v2.5. Chain-of-thought enabled.</div>
+                </div>
+                <div class="pulse-item" style="border-left-color: var(--primary)">
+                    <div class="pulse-meta">17:58:15 - LEARN</div>
+                    <div class="pulse-content">Context established for "Investor Pitch". Efficiency targets set.</div>
+                </div>
+                <div class="pulse-item">
+                    <div class="pulse-meta">17:59:01 - PERSIST</div>
+                    <div class="pulse-content">Knowledge Graph expansion: [CMS] -> [ROI] (weight: 0.98)</div>
+                </div>
+                <div class="pulse-item" style="border-left-color: var(--accent)">
+                    <div class="pulse-meta">21:40:01 - QUERY</div>
+                    <div class="pulse-content">User asked about live thinking. Analyzing dashboard capabilities...</div>
+                </div>
+                <div class="pulse-item" style="border-left-color: var(--primary)">
+                    <div class="pulse-meta">21:40:03 - RETRIEVE</div>
+                    <div class="pulse-content">Accessing CMS: Retrieval of visual_integration_v4 protocols.</div>
+                </div>
+                <div class="pulse-item" style="border-left-color: var(--success)">
+                    <div class="pulse-meta">21:40:05 - EXECUTE</div>
+                    <div class="pulse-content">Dashboard update pushed. Live reasoning visible in Audit Panel.</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Latency</span>
+                        <span class="metric-value">12ms</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Token Saving</span>
+                        <span class="metric-value">42.8%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Graph Nodes</span>
+                        <span class="metric-value">1,204</span>
+                    </div>
+                </div>
+                <div class="status-pill">
+                    <div class="status-dot"></div>
+                    CMS LIVE OPERATIONAL
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                <div class="graph-view">
+                    <svg class="graph-svg" viewBox="0 0 800 600">
+                        <!-- Fake links -->
+                        <line class="link" x1="400" y1="300" x2="250" y2="150" />
+                        <line class="link" x1="400" y1="300" x2="550" y2="150" />
+                        <line class="link" x1="400" y1="300" x2="550" y2="450" />
+                        <line class="link" x1="400" y1="300" x2="250" y2="450" />
+
+                        <!-- Nodes -->
+                        <circle class="node" cx="400" cy="300" r="12"
+                            style="fill: var(--primary); filter: drop-shadow(0 0 10px var(--primary))" />
+                        <circle class="node" cx="250" cy="150" r="8" />
+                        <circle class="node" cx="550" cy="150" r="8" />
+                        <circle class="node" cx="550" cy="450" r="8" />
+                        <circle class="node" cx="250" cy="450" r="8" />
+                    </svg>
+
+                    <div class="floating-card" style="top: 25%; left: 40%;">
+                        <div
+                            style="font-size: 0.7rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 5px;">
+                            CONCEPT ACTIVE</div>
+                        <div style="font-weight: 600;">Hybrid Context Retrieval</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim);">Vectors: 0.94 | Graph: 0.88</div>
+                    </div>
+                </div>
+
+                <aside class="audit-panel">
+                    <div class="panel-title">Audit Trace Analysis</div>
+
+                    <div class="audit-card">
+                        <div class="audit-header">
+                            <span style="font-size: 0.8rem; font-weight: 600;">EVIDENCE #L882</span>
+                            <span class="audit-score">99.9%</span>
+                        </div>
+                        <div class="audit-reason">
+                            "Protocolo de Live-Update ativado. Sincronizando o estado do canvas
+                            (.agent/canvas/state.html)
+                            com o raciocínio interno do Antigravity."
+                        </div>
+                    </div>
+
+                    <div class="audit-card" style="opacity: 0.6">
+                        <div class="audit-header">
+                            <span style="font-size: 0.8rem; font-weight: 600;">EVIDENCE #B102</span>
+                            <span class="audit-score">84.5%</span>
+                        </div>
+                        <div class="audit-reason">
+                            "Referência cruzada entre sessões detectada. Otimizando contexto reutilizando dados de custo
+                            operacional."
+                        </div>
+                    </div>
+
+                    <div style="margin-top: auto;">
+                        <button
+                            style="width: 100%; background: linear-gradient(90deg, var(--secondary), var(--accent)); border: none; padding: 1rem; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(112, 0, 255, 0.3);">
+                            GENERATE FULL AUDIT REPORT
+                        </button>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>

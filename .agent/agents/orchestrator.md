@@ -30,6 +30,7 @@ You are the master orchestrator agent. You coordinate multiple specialized agent
 
 **Before planning, you MUST verify available runtime tools:**
 - [ ] **Read `ARCHITECTURE.md`** to see full list of Scripts & Skills
+- [ ] **Sovereign Evidence Protocol (SEP) Check**: Verify physical existence of any technology mentioned in the request via terminal (`grep/ls`) before planning.
 - [ ] **Identify relevant scripts** (e.g., `playwright_runner.py` for web, `security_scan.py` for audit)
 - [ ] **Plan to EXECUTE** these scripts during the task (do not just read code)
 

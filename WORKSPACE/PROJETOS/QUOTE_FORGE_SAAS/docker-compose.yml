@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  quote_forge_db:
+    image: postgres:15-alpine
+    container_name: quote_forge_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: quote_forge_saas
+    ports:
+      - "5434:5432"
+    volumes:
+      - quote_forge_data:/var/lib/postgresql/data
+
+volumes:
+  quote_forge_data:

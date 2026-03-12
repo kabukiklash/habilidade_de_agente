@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVO_IA | A Crônica da Evolução</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020205;
+            --surface: #0a0a0f;
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --text-main: #e0e0e0;
+            --text-dim: #94a3b8;
+            --accent-green: #00ff88;
+            --glass: rgba(10, 10, 15, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Modern Shared Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 240px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--primary);
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-dim);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .main-content {
+            margin-left: 240px;
+            padding: 4rem;
+            max-width: 1200px;
+        }
+
+        .hero {
+            margin-bottom: 6rem;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-dim);
+            max-width: 700px;
+        }
+
+        /* Chronicle Timeline */
+        .timeline {
+            position: relative;
+            margin: 4rem 0;
+            padding-left: 2rem;
+            border-left: 1px solid var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 4rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -33px;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .timeline-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .timeline-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-content p {
+            color: var(--text-dim);
+        }
+
+        /* Investor Cards */
+        .pitch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2.5rem;
+            border-radius: 16px;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .card h4 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .value-stat {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin: 1rem 0;
+            display: block;
+        }
+
+        /* Background Glow */
+        .glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(112, 0, 255, 0.1) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow"></div>
+
+    <nav class="sidebar">
+        <div class="logo">
+            <span>🧠</span> EVO_IA
+        </div>
+        <a href="#" class="nav-link active" onclick="navigate('evo_ia.html')">📖 A Crônica</a>
+        <a href="#" class="nav-link" onclick="navigate('glass_brain.html')">👁️ Control Plane</a>
+        <a href="#" class="nav-link" onclick="navigate('roi_simulator.html')">📈 ROI Simulator</a>
+        <a href="#" class="nav-link" onclick="navigate('token_ledger.html')">💎 Token Ledger</a>
+        <a href="#" class="nav-link" onclick="navigate('index.html')">🚪 Dashboard Original</a>
+    </nav>
+
+    <main class="main-content">
+        <section class="hero">
+            <h1>A Crônica do EVO_IA</h1>
+            <p>
+                Como transformamos 7.120 linhas de código proprietário em uma infraestrutura cognitiva soberana,
+                eliminando o desperdício de tokens e criando ativos de conhecimento persistentes.
+            </p>
+        </section>
+
+        <section id="chronicle">
+            <h2 style="font-size: 2rem; margin-bottom: 3rem; color: #fff;">O Caminho da Soberania</h2>
+
+            <div class="timeline">
+                <div class="timeline-item">
+                    <span class="timeline-tag">EVO-01: O PORTÃO DE FERRO</span>
+                    <div class="timeline-content">
+                        <h3>Zero-Trust Foundation</h3>
+                        <p>
+                            Nascemos sob a premissa de que conhecimento é poder, e poder deve ser protegido.
+                            Implementamos o middleware de segurança que bloqueia acessos externos e garante
+                            que apenas o ACE autorizado possa injetar inteligência no sistema.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <span class="timeline-tag">EVO-02 & 03: O NÔMADE</span>
+                    <div class="timeline-content">
+                        <h3>Liberdade Geográfica</h3>
+                        <p>
+                            Quebramos as correntes do localhost. Criamos a infraestrutura de túnel Cloudflare
+                            e o ACE Client resiliente. Agora, o desenvolvedor pode estar em qualquer lugar,
+                            mas sua inteligência centralizada permanece segura e acessível.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <span class="timeline-tag">EVO-04: MEMÓRIA IMUTÁVEL</span>
+                    <div class="timeline-content">
+                        <h3>Cognitive Ledger</h3>
+                        <p>
+                            O momento da virada. Implementamos auditorias de raciocínio imutáveis no Postgres.
+                            Cada decisão da IA agora é um ativo que sobrevive ao reinício do notebook.
+                            A inteligência não é mais evaporativa; ela é acumulativa.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <span class="timeline-tag">EVO-06: GLASS BRAIN</span>
+                    <div class="timeline-content">
+                        <h3>Transparência Total</h3>
+                        <p>
+                            Criamos o Control Plane definitivo. Observar o raciocínio da IA em tempo real
+                            não é mais luxo, é governança. O Glass Brain permite ver a saúde do ecossistema
+                            e o balanço de tokens salvos em um único frame.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pitch" style="margin-top: 8rem;">
+            <h2 style="font-size: 2rem; margin-bottom: 3rem; color: #fff;">Investor Deck: O Horizonte de Token Zero</h2>
+
+            <div class="pitch-grid">
+                <div class="card">
+                    <span class="card-icon">💎</span>
+                    <h4>Ativo de Conhecimento</h4>
+                    <p>Diferente de sistemas comuns, o EVO_IA transforma cada prompt em um registro persistente.</p>
+                    <span class="value-stat">Propriedade Intelectual</span>
+                    <p style="font-size: 0.9rem;">Sua IA aprende com o seu código e retém esse valor para sempre.</p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icon">📉</span>
+                    <h4>Token Deflation</h4>
+                    <p>Reduzimos drasticamente o custo de contexto através da memória centralizada.</p>
+                    <span class="value-stat">-40% a -60%</span>
+                    <p style="font-size: 0.9rem;">Menos desperdício de dinheiro com prompts repetitivos e reaprendizado.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icon">🚀</span>
+                    <h4>Zero-Cost Infra</h4>
+                    <p>Software feito para rodar em hardware local com exposição global segura.</p>
+                    <span class="value-stat">R$ 0,00 Fixo</span>
+                    <p style="font-size: 0.9rem;">Elimina a necessidade de AWS/Azure para ambientes de desenvolvimento.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <footer
+            style="margin-top: 8rem; padding-bottom: 4rem; text-align: center; border-top: 1px solid var(--border); padding-top: 4rem;">
+            <p style="color: var(--text-dim);">EVO_IA v1.0 — Projetado para a Soberania Tecnológica</p>
+        </footer>
+    </main>
+
+    <script>
+        // Preserve API Key during navigation
+        function navigate(page) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiKey = urlParams.get('api_key');
+            if (apiKey) {
+                window.location.href = `${page}?api_key=${apiKey}`;
+            } else {
+                window.location.href = page;
+            }
+        }
+    </script>
+</body>
+
+</html>

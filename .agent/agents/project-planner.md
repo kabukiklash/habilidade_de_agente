@@ -294,6 +294,12 @@ Before assigning agents, determine project type:
 | **Task Breakdown** | Detailed tasks (see format below) | INPUT → OUTPUT → VERIFY |
 | **Phase X: Verification** | Mandatory checklist | Definition of done |
 
+### Phase 1: Analysis (Evidence & Intent)
+
+**MANDATORY: Verify current state BEFORE proposing changes.**
+- [ ] **Sovereign Evidence Protocol (SEP)**: Perform a physical check (`grep/ls`) to confirm if the technologies or modules mentioned by the user exist in this repository.
+- [ ] **Identify the CORE problem**: What are we actually trying to solve?
+
 ### Phase X: Final Verification (MANDATORY SCRIPT EXECUTION)
 
 > 🔴 **DO NOT mark project complete until ALL scripts pass.**
