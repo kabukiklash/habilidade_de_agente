@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ACE Control Plane (Dashboard)</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f8fafc;
+            --primary: #38bdf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-start {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .btn-start:hover {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-pause {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .btn-pause:hover {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .btn-extract {
+            background-color: rgba(56, 189, 248, 0.1);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-extract:hover {
+            background-color: var(--primary);
+            color: #0f172a;
+        }
+
+        .btn-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            margin-left: auto;
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .log-box {
+            background: #020617;
+            padding: 20px;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            color: #cbd5e1;
+            border-left: 2px solid transparent;
+            padding-left: 10px;
+        }
+
+        .log-entry.new {
+            animation: flash 1s ease-out;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .status-running {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status-running::before {
+            content: "•";
+            color: var(--success);
+            font-size: 20px;
+            margin-right: 6px;
+        }
+
+        .status-paused {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .status-paused::before {
+            content: "•";
+            color: var(--warning);
+            font-size: 20px;
+            margin-right: 6px;
+        }
+
+        .status-dead {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        @keyframes flash {
+            0% {
+                background-color: rgba(56, 189, 248, 0.2);
+                border-left-color: var(--primary);
+            }
+
+            100% {
+                background-color: transparent;
+                border-left-color: transparent;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Antigravity Context Engine (ACE)</h1>
+                <p style="margin: 5px 0 0 0; color: #94a3b8; font-size: 14px;">Serviço local de governança cognitiva
+                    para o Cursor e VS Code.</p>
+            </div>
+            <div style="text-align: right;">
+                <div id="statusBadge" class="status-badge status-running" style="margin-bottom: 8px; display: block;">
+                    RODANDO</div>
+                <div
+                    style="background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); padding: 5px 12px; border-radius: 8px; color: #00ff88; font-size: 12px; font-weight: bold; font-family: 'JetBrains Mono', Consolas, monospace;">
+                    Tokens Salvos: <span id="tokenCounter" style="font-size: 14px;">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="sendCommand('resume')" class="btn-start">▶ Iniciar / Retomar</button>
+                <button onclick="sendCommand('pause')" class="btn-pause">⏸ Pausar Observador</button>
+                <button onclick="extractMemory()" class="btn-extract">🧠 Extrair Sabedoria</button>
+            </div>
+            <button onclick="confirmUninstall()" class="btn-danger">🗑 Desinstalar ACE</button>
+        </div>
+
+        <h3
+            style="margin-top: 0; color: #cbd5e1; font-size: 16px; display: flex; align-items: center; justify-content: space-between;">
+            Live Logs (Eventos Visuais)
+            <span id="connStatus" style="font-size: 12px; font-weight: normal; color: var(--success);">Online</span>
+        </h3>
+
+        <div class="log-box" id="logBox">
+            <div class="log-entry">🚀 Conectando ao ACE Local... Aguardando eventos do File System.</div>
+        </div>
+    </div>
+
+    <script>
+        const ws = new WebSocket("ws://localhost:8095/ws");
+        const logBox = document.getElementById("logBox");
+        const statusBadge = document.getElementById("statusBadge");
+        const connStatus = document.getElementById("connStatus");
+
+        ws.onopen = () => { connStatus.textContent = "🟢 Conectado"; connStatus.style.color = "var(--success)"; };
+        ws.onclose = () => { connStatus.textContent = "🔴 Desconectado"; connStatus.style.color = "var(--danger)"; };
+
+        ws.onmessage = function (event) {
+            const entry = document.createElement("div");
+            entry.className = "log-entry new";
+            const now = new Date();
+            // Formatação de cor baseada no tipo da mensagem
+            let color = "#cbd5e1";
+            if (event.data.includes("🧠")) color = "var(--primary)";
+            if (event.data.includes("🔴")) color = "var(--warning)";
+            if (event.data.includes("🟢")) color = "var(--success)";
+            if (event.data.includes("⚠️") || event.data.includes("⛔")) color = "var(--danger)";
+
+            entry.innerHTML = `<span style="color: #64748b; margin-right: 10px;">[${now.toLocaleTimeString()}]</span> <span style="color: ${color}">${event.data}</span>`;
+
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+
+            setTimeout(() => entry.classList.remove('new'), 1000);
+
+            // Tenta extrair a economia do log se existir
+            const match = event.data.match(/Total:\s*(\d+)/);
+            if (match && match[1]) {
+                document.getElementById('tokenCounter').innerText = parseInt(match[1]).toLocaleString('pt-BR');
+            }
+        };
+
+        async function sendCommand(cmd) {
+            await fetch(`http://localhost:8095/api/${cmd}`, { method: 'POST' });
+            updateStatusBadge(cmd === 'resume' ? 'running' : 'paused');
+            appendLocalLog(`Comando enviado: ${cmd.toUpperCase()}`);
+        }
+
+        async function extractMemory() {
+            appendLocalLog(`Iniciando extração de sabedoria local...`);
+            await fetch(`http://localhost:8095/api/extract_memory`, { method: 'POST' });
+        }
+
+        async function confirmUninstall() {
+            if (confirm("ATENÇÃO: Você tem certeza?\nIsso apagará todas as dependências geradas (como o arquivo .cursorrules deste projeto) e fechará o painel permanentemente.")) {
+                await fetch(`http://localhost:8095/api/uninstall`, { method: 'POST' });
+                updateStatusBadge('dead');
+                document.querySelectorAll('button').forEach(b => b.disabled = true);
+            }
+        }
+
+        function updateStatusBadge(status) {
+            if (status === 'running') {
+                statusBadge.innerHTML = "RODANDO";
+                statusBadge.className = "status-badge status-running";
+            } else if (status === 'paused') {
+                statusBadge.innerHTML = "PAUSADO";
+                statusBadge.className = "status-badge status-paused";
+            } else {
+                statusBadge.innerHTML = "DESLIGADO";
+                statusBadge.className = "status-badge status-dead";
+            }
+        }
+
+        function appendLocalLog(msg) {
+            ws.onmessage({ data: `⚙️ VISTO LOCALMENTE: ${msg}` });
+        }
+
+        // Fetch inicial do estado
+        fetch('http://localhost:8095/api/status').then(r => r.json()).then(data => updateStatusBadge(data.status)).catch(e => {
+            connStatus.textContent = "🔴 O ACE está offline";
+            connStatus.style.color = "var(--danger)";
+            updateStatusBadge('dead');
+        });
+    </script>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -7,6 +7,9 @@ import { TenantController } from './api/TenantController';
 import { TemplateController } from './api/TemplateController';
 import { authMiddleware } from './api/AuthMiddleware';
 import { SendQuote } from './application/use-cases/SendQuote';
+import clientsRoutes from './modules/clients/clients.routes';
+import templatesRoutes from './modules/templates/templates.routes';
+import quotesRoutes from './modules/quotes/quotes.routes';
 
 dotenv.config();
 
@@ -32,9 +35,11 @@ app.post('/api/auth/login', TenantController.login);
 const apiRouter = express.Router();
 apiRouter.use(authMiddleware);
 
+// Clientes
+apiRouter.use(clientsRoutes);
+
 // Templates
-apiRouter.post('/templates', TemplateController.create);
-apiRouter.get('/templates', TemplateController.list);
+apiRouter.use(templatesRoutes);
 
 // Orçamentos
 apiRouter.post('/quotes', QuoteController.create);

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign: Calculadora + Chat Livre</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans flex flex-col items-center" onload="initApp()">
+    
+    <div class="text-center mb-6">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-indigo-400 bg-clip-text text-transparent">POC: Cérebro Local & Consilium</h1>
+        <p class="text-slate-400 mt-2">Integração Localhost, Ngrok e API Oficial (Minimax)</p>
+    </div>
+
+    <!-- Painel de Redes e Modelos -->
+    <div class="max-w-6xl w-full mb-6 bg-slate-800 p-5 rounded-xl border border-indigo-500/30 shadow-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Configuração do Servidor -->
+        <div class="flex flex-col gap-2 border-r border-slate-700 pr-4">
+            <label class="font-bold text-indigo-300 flex items-center gap-2 text-sm justify-between">
+                <span><span class="text-lg">🌐</span> Ponto de Conexão (Servidor):</span>
+            </label>
+            <div class="flex gap-2">
+                <select id="serverTypeSelect" onchange="toggleServerInput()" class="bg-slate-950 border border-slate-700 text-slate-300 rounded-lg p-3 outline-none focus:border-indigo-500 w-1/3 text-sm cursor-pointer">
+                    <option value="local" selected>Localhost (LM Studio)</option>
+                    <option value="remote">Remoto (Túnel Cloudflare)</option>
+                </select>
+                <input type="text" id="serverUrlInput" class="bg-slate-950 border border-slate-700 text-slate-200 rounded-lg p-3 flex-1 outline-none focus:border-indigo-500 font-mono text-sm" value="http://localhost:1234">
+                <button onclick="loadModels()" class="bg-indigo-600 hover:bg-indigo-500 p-3 rounded-lg font-bold transition flex items-center justify-center shrink-0" title="Conectar">🔗/🔄</button>
+            </div>
+            <div class="text-xs text-slate-500 mt-1" id="serverStatusText">Aguardando conexão...</div>
+        </div>
+
+        <!-- Seleção de Modelo -->
+        <div class="flex flex-col gap-2 pl-2">
+            <label class="font-bold text-emerald-400 flex items-center gap-2 text-sm">
+                <span>🧠</span> Membro do Consilium (Modelo):
+            </label>
+            <div class="flex gap-2">
+                <select id="modelSelect" class="bg-slate-950 border border-slate-700 text-slate-200 rounded-lg p-3 flex-1 outline-none focus:border-emerald-500 transition shadow-inner appearance-none cursor-pointer text-sm">
+                    <option value="">Aperte o botão 🔗 para buscar os modelos...</option>
+                </select>
+            </div>
+            <div class="text-[10px] text-slate-500 italic text-right mt-1">O Consilium agora tem presença global.</div>
+        </div>
+    </div>
+
+    <!-- Área Principal Dividida -->
+    <div class="max-w-6xl w-full grid grid-cols-1 md:grid-cols-12 gap-6 h-[70vh]">
+        
+        <!-- COLUNA ESQUERDA: Ferramentas -->
+        <div class="md:col-span-5 bg-slate-800 p-6 rounded-2xl shadow-2xl border border-slate-700/50 flex flex-col h-full overflow-y-auto">
+            <h2 class="text-xl font-bold mb-4 text-emerald-400 flex items-center gap-2 border-b border-slate-700 pb-2">
+                <span>⚡</span> Laboratório Matemático
+            </h2>
+            <input type="text" id="display" class="w-full bg-slate-950 text-right text-3xl p-4 rounded-xl outline-none mb-4 font-mono shadow-inner border border-slate-800 text-slate-200" readonly placeholder="0">
+            
+            <div class="grid grid-cols-4 gap-3">
+                <button onclick="clearDisplay()" class="col-span-3 bg-red-500/20 text-red-400 hover:bg-red-500/30 p-3 rounded-xl font-bold transition">LIMPAR (C)</button>
+                <button onclick="appendValue('/')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">÷</button>
+                <!-- Numpad reduzido para espaço -->
+                <button onclick="appendValue('7')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">7</button>
+                <button onclick="appendValue('8')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">8</button>
+                <button onclick="appendValue('9')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">9</button>
+                <button onclick="appendValue('*')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">×</button>
+                
+                <button onclick="appendValue('4')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">4</button>
+                <button onclick="appendValue('5')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">5</button>
+                <button onclick="appendValue('6')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">6</button>
+                <button onclick="appendValue('-')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">−</button>
+                
+                <button onclick="appendValue('1')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">1</button>
+                <button onclick="appendValue('2')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">2</button>
+                <button onclick="appendValue('3')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">3</button>
+                <button onclick="appendValue('+')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">+</button>
+                
+                <button onclick="appendValue('0')" class="col-span-2 bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">0</button>
+                <button onclick="appendValue('.')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition text-xl">.</button>
+                <button onclick="calculate()" class="bg-emerald-500 hover:bg-emerald-400 p-3 rounded-xl font-bold transition text-slate-900 text-2xl shadow-lg shadow-emerald-500/20">=</button>
+            </div>
+
+            <!-- Botões de Ação Dinâmica -->
+            <div class="mt-6 pt-4 border-t border-slate-700 flex flex-col gap-3">
+                <button onclick="askLocalAI()" class="w-full bg-indigo-500/20 border border-indigo-500 hover:bg-indigo-500 hover:text-white text-indigo-300 font-bold py-3 px-4 rounded-xl transition shadow-[0_0_15px_rgba(99,102,241,0.1)] flex items-center justify-center gap-3 group">
+                    Explicar Cálculo na IA
+                </button>
+                <button onclick="runBenchmark()" class="w-full bg-orange-500/10 border border-orange-500/50 hover:bg-orange-500 hover:text-white text-orange-400 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-3">
+                    <span>🔥</span> Stress Test
+                </button>
+            </div>
+        </div>
+
+        <!-- COLUNA DIREITA: Chat Livre Interativo -->
+        <div class="md:col-span-7 bg-slate-950 p-1 rounded-2xl shadow-2xl border border-slate-700/50 flex flex-col h-full relative">
+            
+            <div class="bg-slate-900/50 p-4 border-b border-slate-800 rounded-t-2xl flex justify-between items-center">
+                <h2 class="text-xl font-bold text-indigo-400 flex items-center gap-2">
+                    <span>💬</span> Consilium Engine (Chat)
+                </h2>
+                <button onclick="clearChat()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded text-red-300 border border-slate-700">Deletar Memória</button>
+            </div>
+
+            <div id="chatMessages" class="flex-1 p-5 overflow-y-auto flex flex-col gap-4 font-sans text-sm">
+                <!-- Mensagem de Boas-Vindas do Sistema -->
+                <div class="flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-indigo-900 border border-indigo-500 flex items-center justify-center text-lg flex-shrink-0">🤖</div>
+                    <div class="bg-slate-800 border border-indigo-500/30 rounded-2xl rounded-tl-none p-4 max-w-[85%] text-slate-300 shadow-sm leading-relaxed">
+                        <p class="mb-2"><strong>Sistema Iniciado:</strong> O Cérebro Local está pronto para operar em modo Total Offline e Privado. Selecione a Placa acima para continuar a deliberação.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="typingIndicator" class="hidden px-6 py-2 pb-4 text-indigo-400/70 text-xs flex items-center gap-2 font-mono">
+                Processando...
+            </div>
+
+            <!-- Caixa de Texto / Input -->
+            <div class="p-4 bg-slate-900 rounded-b-2xl border-t border-slate-800 flex gap-3 items-end">
+                <textarea id="chatInput" rows="2" class="w-full bg-slate-950 text-slate-200 border border-slate-700 rounded-xl p-3 outline-none focus:border-indigo-500 transition resize-none text-sm placeholder-slate-600" placeholder="Converse com a Placa do LM Studio Ou com o Minimax..." onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendChatMessage(); }"></textarea>
+                
+                <button onclick="sendChatMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-[46px] px-6 font-bold flex items-center justify-center transition shadow-lg shrink-0">
+                    Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DA CALCULADORA E TÚNEL LOCAL -->
+    <script>
+        const display = document.getElementById('display');
+        const chatMessages = document.getElementById('chatMessages');
+        const modelSelect = document.getElementById('modelSelect');
+        const serverUrlInput = document.getElementById('serverUrlInput');
+        const serverTypeSelect = document.getElementById('serverTypeSelect');
+        const serverStatusText = document.getElementById('serverStatusText');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const chatInput = document.getElementById('chatInput');
+
+        let currentExpression = '';
+        let lastResult = '';
+        let chatHistory = [];
+
+        function initApp() {
+            chatHistory.push({ role: "system", content: "Responda criativamente. Fale sempre em português." });
+            toggleServerInput();
+        }
+
+        function toggleServerInput() {
+            const val = serverTypeSelect.value;
+            if (val === 'local') {
+                serverUrlInput.value = 'http://localhost:1234';
+                serverUrlInput.readOnly = false;
+            } else if (val === 'remote') {
+                serverUrlInput.value = 'https://islands-acknowledged-equality-ipaq.trycloudflare.com';
+                serverUrlInput.readOnly = false;
+            }
+            loadModels();
+        }
+
+        function getBaseUrl() {
+            let url = serverUrlInput.value.trim();
+            if(url.endsWith('/')) url = url.slice(0, -1);
+            if(url.endsWith('/v1')) url = url.slice(0, -3); 
+            return url + '/v1';
+        }
+
+        function getHeaders() {
+            return { 'Content-Type': 'application/json' };
+        }
+
+        async function loadModels() {
+            const baseUrl = getBaseUrl();
+            serverStatusText.className = "text-xs italic mt-1 text-yellow-500";
+            serverStatusText.textContent = `Aguardando túnel/API em ${baseUrl}...`;
+            modelSelect.innerHTML = '<option value="">Buscando modelos...</option>';
+            
+            try {
+                const res = await fetch(`${baseUrl}/models`, {
+                    headers: getHeaders()
+                });
+                
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const json = await res.json();
+                
+                modelSelect.innerHTML = '';
+                if (json.data && json.data.length > 0) {
+                    json.data.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        let suffix = '';
+                        if(model.id.toLowerCase().includes('embed')) suffix = ' (⚠️ Embed)';
+                        if(model.id.toLowerCase().includes('image') || model.id.toLowerCase().includes('vision')) suffix = ' (⚠️ Image)';
+                        option.textContent = model.id + suffix;
+                        
+                        // Default Selections Automáticos
+                        if(model.id.includes('gemma') || model.id.includes('deepseek')) option.selected = true;
+                        
+                        modelSelect.appendChild(option);
+                    });
+                    serverStatusText.className = "text-xs italic mt-1 text-emerald-500 font-bold";
+                    serverStatusText.textContent = `✅ Ping com Sucesso! Gateway Autenticado.`;
+                } else {
+                    // Fallback visual pro usuário, caso API não retorne /models
+                    modelSelect.innerHTML = '<option value="">Sem modelos na rede.</option>';
+                }
+            } catch (error) {
+                serverStatusText.className = "text-xs italic mt-1 text-red-400 font-bold";
+                serverStatusText.textContent = `❌ ${error.message} (Bloqueio CORS ou Offline)`;
+                
+                // Fallback visual pro usuário, caso API não retorne /models
+                modelSelect.innerHTML = '<option value="">Sem modelos na rede ou Servidor Desligado.</option>';
+            }
+        }
+
+        function appendUserMessage(text) {
+            const msgHtml = `
+                <div class="flex gap-3 justify-end">
+                    <div class="bg-indigo-600 border border-indigo-500 rounded-2xl rounded-tr-none p-3 px-5 max-w-[85%] text-white shadow-sm break-words whitespace-pre-wrap">${text}</div>
+                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-sm flex-shrink-0 border border-slate-600">👤</div>
+                </div>
+            `;
+            chatMessages.insertAdjacentHTML('beforeend', msgHtml);
+            scrollToBottom();
+        }
+
+        function appendAIMessage(htmlContent, modelName) {
+            const bgClass = 'bg-slate-800 border-slate-700';
+            const msgHtml = `
+                <div class="flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-900 border border-emerald-500 flex items-center justify-center text-sm flex-shrink-0" title="${modelName}">🤖</div>
+                    <div class="${bgClass} border rounded-2xl rounded-tl-none p-4 max-w-[85%] text-emerald-100 shadow-sm leading-relaxed text-sm overflow-x-hidden">
+                        <div class="mb-1 pb-1 border-b border-slate-700/50 text-[10px] text-emerald-400/50 uppercase tracking-widest font-bold">Respondeu com: ${modelName}</div>
+                        ${htmlContent}
+                    </div>
+                </div>
+            `;
+            chatMessages.insertAdjacentHTML('beforeend', msgHtml);
+            scrollToBottom();
+        }
+
+        function appendSystemWarning(htmlContent) {
+            const msgHtml = `
+                <div class="flex justify-center my-2">
+                    <div class="bg-red-900/40 border border-red-500/50 rounded-lg p-3 text-red-300 text-xs w-[90%] text-center font-bold">
+                        ${htmlContent}
+                    </div>
+                </div>
+            `;
+            chatMessages.insertAdjacentHTML('beforeend', msgHtml);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
+        }
+
+        function formatMarkdown(text) {
+            return text.replace(/```([\s\S]*?)```/g, '<pre class="bg-black/80 p-3 rounded-lg border border-slate-700 my-2 overflow-x-auto text-emerald-300"><code>$1</code></pre>')
+                       .replace(/\n/g, '<br>')
+                       .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+                       .replace(/\*(.*?)\*/g, '<em class="text-emerald-200/80">$1</em>');
+        }
+
+        function clearChat() {
+            chatHistory = [chatHistory[0]]; 
+            chatMessages.innerHTML = '';
+            appendSystemWarning('Amnésia total. A IA perdeu acesso ao histórico acima.');
+        }
+
+        async function fetchFromAI(messagesArray) {
+            const selectedModel = modelSelect.value;
+            if (!selectedModel) {
+                 appendSystemWarning('Selecione uma IA do Consilium na caixa suspensa antes de pedir.');
+                 return null;
+            }
+
+            typingIndicator.classList.remove('hidden');
+            scrollToBottom();
+
+            const payload = {
+                model: selectedModel,
+                messages: messagesArray,
+                temperature: 0.7
+            };
+            
+            // Limit tokens safely depending on target
+            payload.max_tokens = -1; // Localhost handles this
+
+            try {
+                const response = await fetch(`${getBaseUrl()}/chat/completions`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                     const errorText = await response.text();
+                     throw new Error(`HTTP ${response.status} - ${errorText}`);
+                }
+                const data = await response.json();
+                
+                if(!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error("Formato json inesperado da IA.");
+                }
+                
+                return { text: data.choices[0].message.content, model: selectedModel };
+
+            } catch (error) {
+                appendSystemWarning(`🚫 O Conselheiro falhou na Geração:<br>${error.message}`);
+                return null;
+            } finally {
+                typingIndicator.classList.add('hidden');
+            }
+        }
+
+        async function sendChatMessage() {
+            const tempMsg = chatInput.value.trim();
+            if(!tempMsg) return;
+            
+            chatInput.value = ''; 
+            appendUserMessage(tempMsg);
+            
+            chatHistory.push({ role: "user", content: tempMsg });
+            
+            const result = await fetchFromAI(chatHistory);
+            
+            if (result && result.text) {
+                chatHistory.push({ role: "assistant", content: result.text });
+                appendAIMessage(formatMarkdown(result.text), result.model);
+            } else {
+                chatHistory.pop(); // Reverte caso conexão bloqueie
+            }
+        }
+
+        // Calculadora Core
+        function appendValue(val) { display.value = (display.value === '0' || display.value === 'Erro') ? val : display.value + val; }
+        function clearDisplay() { display.value = ''; currentExpression = ''; lastResult = ''; }
+        function calculate() {
+            try { if(display.value) { currentExpression = display.value; lastResult = Function('"use strict";return (' + currentExpression + ')')(); display.value = lastResult; }
+            } catch (e) { display.value = 'Erro'; }
+        }
+
+        async function askLocalAI() {
+            if (!currentExpression || !lastResult || display.value === 'Erro') {
+                appendSystemWarning('Faça um cálculo matemático na tela da esquerda primeiro!'); return;
+            }
+            const prompt = `Aja como um cientista louco. Explique por que essa matemática importa: ${currentExpression} = ${lastResult}`;
+            appendUserMessage(prompt);
+            
+            const result = await fetchFromAI([{ role: "system", content: "Personalidade: Cientista insano da série Rick e Morty." }, { role: "user", content: prompt }]);
+            if (result && result.text) appendAIMessage(formatMarkdown(result.text), result.model + " (Math)");
+        }
+
+        async function runBenchmark() {
+            appendSystemWarning(`⚠️ [BENCHMARK] - Carga Extrema injetada via API no modelo: ${modelSelect.value}`);
+            const prompt = "Escreva uma história incrivelmente longa e detalhada sobre uma placa de vídeo que ganhou senciência e derrubou o servidor do Cloudflare para testar um humano. Gere o máximo de texto que der no limite do hardware!";
+            appendUserMessage(prompt);
+
+            const startTime = Date.now();
+            const result = await fetchFromAI([{ role: "user", content: prompt }]);
+            if (result && result.text) {
+                const totalTimeSecs = ((Date.now() - startTime) / 1000).toFixed(2);
+                const estimatedTokens = Math.floor(result.text.split(' ').length * 1.35);
+                const tokensPerSecond = (estimatedTokens / totalTimeSecs).toFixed(2);
+                
+                const report = `
+                    <div class="bg-black/60 rounded-xl p-4 border border-orange-500 font-mono text-sm shadow-xl">
+                        <strong class="text-orange-400">⏱️ Estatísticas do Último Segundo de Vida:</strong><br>
+                        - Latência Absoluta: <span class="text-white">${totalTimeSecs}s</span><br>
+                        - Peso Extravasado: <span class="text-emerald-400">~${estimatedTokens} tokens</span><br>
+                        - Potência do Cérebro Ativo: <strong class="text-cyan-400 text-lg">${tokensPerSecond} TP/s</strong>
+                    </div>
+                    <div class="mt-3 opacity-90 text-[11px]">${formatMarkdown(result.text)}</div>
+                `;
+                appendAIMessage(report, result.model);
+            }
+        }
+    </script>
+</body>
+</html>

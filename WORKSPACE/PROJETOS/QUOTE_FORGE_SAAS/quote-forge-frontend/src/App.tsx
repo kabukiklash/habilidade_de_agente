@@ -4,6 +4,10 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ClientsPage } from './pages/ClientsPage';
+import { TemplatesPage } from './pages/TemplatesPage';
+import { QuotesPage } from './pages/QuotesPage';
+import { QuoteBuilderPage } from './pages/QuoteBuilderPage';
 
 const queryClient = new QueryClient();
 
@@ -17,9 +21,10 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/templates" element={<div className="text-white">Gerenciador de Templates (Em breve)</div>} />
-              <Route path="/quotes" element={<div className="text-white">Listagem de Orçamentos (Em breve)</div>} />
-              <Route path="/clients" element={<div className="text-white">Gestão de Clientes (Em breve)</div>} />
+              <Route path="/templates" element={<TemplatesPage />} />
+              <Route path="/quotes" element={<QuotesPage />} />
+              <Route path="/quotes/:id" element={<QuoteBuilderPage />} />
+              <Route path="/clients" element={<ClientsPage />} />
               <Route path="/settings" element={<div className="text-white">Configurações (Em breve)</div>} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Route>

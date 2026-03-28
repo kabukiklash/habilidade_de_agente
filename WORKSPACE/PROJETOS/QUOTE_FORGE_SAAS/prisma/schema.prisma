@@ -18,6 +18,8 @@ model Tenant {
   templates ProductTemplate[]
   quotes    Quote[]
   logs      AuditLog[]
+  clients        Client[]
+  quoteTemplates Template[]
 
   @@map("tenants")
 }
@@ -44,36 +46,47 @@ model ProductTemplate {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   tenant       Tenant   @relation(fields: [tenantId], references: [id])
-  quoteItems   QuoteItem[]
 
   @@map("product_templates")
 }
 
 model Quote {
   id         String   @id @default(uuid())
-  tenantId   String
-  userId     String
-  clientData Json
-  totalPrice Decimal  @db.Decimal(10, 2)
+  tenantId   String   @map("tenant_id")
+  clientId   String   @map("client_id")
+  templateId String?  @map("template_id")
+  
+  quoteNumber String  @map("quote_number")
+  title      String
   status     String   @default("draft")
-  version    Int      @default(1)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  notes      String?
+  currency   String   @default("BRL")
+
+  subtotal   Float    @default(0)
+  tax        Float    @default(0)
+  total      Float    @default(0)
+
+  createdAt  DateTime @default(now()) @map("created_at")
+
   items      QuoteItem[]
+
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
 
   @@map("quotes")
 }
 
 model QuoteItem {
-  id               String   @id @default(uuid())
-  quoteId          String
-  productTemplateId String
-  inputValues      Json
-  calculatedPrice  Decimal  @db.Decimal(10, 2)
-  createdAt        DateTime @default(now())
-  quote            Quote           @relation(fields: [quoteId], references: [id], onDelete: Cascade)
-  template         ProductTemplate @relation(fields: [productTemplateId], references: [id])
+  id          String  @id @default(uuid())
+  quoteId     String  @map("quote_id")
+
+  name        String
+  description String?
+
+  price       Float
+  quantity    Int
+  total       Float
+
+  quote       Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
 
   @@map("quote_items")
 }
@@ -91,4 +104,42 @@ model AuditLog {
   tenant     Tenant   @relation(fields: [tenantId], references: [id])
 
   @@map("audit_logs")
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  email     String?
+  phone     String?
+  company   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@map("clients")
+}
+
+model Template {
+  id          String         @id @default(uuid())
+  tenantId    String         @map("tenant_id")
+  name        String
+  description String?
+  createdAt   DateTime       @default(now()) @map("created_at")
+  items       TemplateItem[]
+  tenant      Tenant         @relation(fields: [tenantId], references: [id])
+
+  @@map("quote_templates")
+}
+
+model TemplateItem {
+  id              String   @id @default(uuid())
+  templateId      String   @map("template_id")
+  name            String
+  description     String?
+  price           Float
+  quantityDefault Int      @default(1) @map("quantity_default")
+  template        Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("quote_template_items")
 }

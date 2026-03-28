@@ -143,6 +143,10 @@ When user's prompt is NOT in English:
 2. What PRINCIPLES must I apply?
 3. How does this DIFFER from generic output?
 
+### 🔄 Checkpoint Commitment (Safety First)
+
+**MANDATORY:** Every 5-10 interactions or significant token consumption, the agent MUST remind the user to perform a checkpoint commit, or proactively suggest a commit if changes are pending. No structural changes should be made without a clean git state.
+
 ---
 
 ## TIER 1: CODE RULES (When Writing Code)

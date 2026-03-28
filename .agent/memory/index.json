@@ -2,6 +2,22 @@
   "version": "4.0.0",
   "sessions": [
     {
+      "id": "afixcontrol-afixgraf",
+      "path": "c:/Users/RobsonSilva-AfixGraf/Habilidade_de_agente/WORKSPACE/PROJETOS/AfixcontrolAfixgraf",
+      "tags": [
+        "priority-1",
+        "crm",
+        "production",
+        "billing",
+        "php",
+        "mysql"
+      ],
+      "memory_files": [
+        "afixcontrol-system.md",
+        "afixcontrol-filemap.md"
+      ]
+    },
+    {
       "id": "habilidade-agente",
       "path": "c:/Users/RobsonSilva-AfixGraf/Habilidade_de_agente",
       "tags": [
@@ -29,5 +45,5 @@
       ]
     }
   ],
-  "last_updated": "2026-01-26T21:48:00Z"
-}
+  "last_updated": "2026-03-23T16:29:00Z"
+}

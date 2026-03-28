@@ -34,3 +34,6 @@ build/
 *.db
 *.sqlite
 *.sqlite3
+
+# External Projects / Submodules
+WORKSPACE/PROJETOS/AfixcontrolAfixgraf/
