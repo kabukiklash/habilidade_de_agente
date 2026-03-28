@@ -7,6 +7,11 @@ import { SecurityService } from '../infrastructure/security/SecurityService';
  */
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  // Ignora rotas públicas dentro do roteador /api
+  if (req.path === '/auth/login' || req.path === '/health') {
+    return next();
+  }
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

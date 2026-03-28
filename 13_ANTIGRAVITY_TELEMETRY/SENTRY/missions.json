@@ -1,0 +1,157 @@
+[
+    {
+        "id": "MISSION-20260325-130149",
+        "start": "2026-03-25 13:01:49",
+        "end": "2026-03-25 13:03:46",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 28
+    },
+    {
+        "id": "MISSION-20260325-131308",
+        "start": "2026-03-25 13:13:08",
+        "end": "2026-03-25 13:13:56",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 12
+    },
+    {
+        "id": "MISSION-20260325-132345",
+        "start": "2026-03-25 13:23:45",
+        "end": "2026-03-25 13:24:43",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 17
+    },
+    {
+        "id": "MISSION-20260325-133141",
+        "start": "2026-03-25 13:31:41",
+        "end": "2026-03-25 13:34:34",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 29
+    },
+    {
+        "id": "MISSION-20260325-145533",
+        "start": "2026-03-25 14:55:33",
+        "end": "2026-03-25 14:56:12",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 0
+    },
+    {
+        "id": "RECON-20260325-145723",
+        "type": "RECON",
+        "start": "2026-03-25 14:57:23",
+        "end": "2026-03-25 14:57:57",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 7
+    },
+    {
+        "id": "AUDIT-20260325-151243",
+        "type": "AUDIT",
+        "start": "2026-03-25 15:12:43",
+        "end": "2026-03-25 15:14:06",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 16
+    },
+    {
+        "id": "AUDIT-20260325-152559",
+        "type": "AUDIT",
+        "start": "2026-03-25 15:25:59",
+        "end": "2026-03-25 15:27:19",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 12
+    },
+    {
+        "id": "AUDIT-20260325-153255",
+        "type": "AUDIT",
+        "start": "2026-03-25 15:32:55",
+        "end": "2026-03-25 15:35:08",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 11
+    },
+    {
+        "id": "AUDIT-20260325-153513",
+        "type": "AUDIT",
+        "start": "2026-03-25 15:35:13",
+        "end": "2026-03-25 15:35:53",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 0
+    },
+    {
+        "id": "RECON-20260325-172558",
+        "type": "RECON",
+        "start": "2026-03-25 17:25:58",
+        "end": "2026-03-25 17:26:15",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 0
+    },
+    {
+        "id": "RECON-20260325-172657",
+        "type": "RECON",
+        "start": "2026-03-25 17:26:57",
+        "end": "2026-03-25 17:28:14",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 0
+    },
+    {
+        "id": "RECON-20260325-181717",
+        "type": "RECON",
+        "start": "2026-03-25 18:17:17",
+        "end": "2026-03-25 18:17:58",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 0
+    },
+    {
+        "id": "RECON-20260325-185740",
+        "type": "RECON",
+        "start": "2026-03-25 18:57:40",
+        "end": "2026-03-25 18:59:59",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 0
+    },
+    {
+        "id": "RECON-20260325-192610",
+        "type": "RECON",
+        "start": "2026-03-25 19:26:10",
+        "end": "2026-03-25 19:27:58",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 0
+    },
+    {
+        "id": "AUDIT-20260325-192943",
+        "type": "AUDIT",
+        "start": "2026-03-25 19:29:43",
+        "end": "2026-03-25 19:30:13",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 0
+    },
+    {
+        "id": "RECON-20260325-193839",
+        "type": "RECON",
+        "start": "2026-03-25 19:38:39",
+        "end": "2026-03-25 19:39:41",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 8
+    },
+    {
+        "id": "AUDIT-20260325-194618",
+        "type": "AUDIT",
+        "start": "2026-03-25 19:46:18",
+        "end": "2026-03-25 19:46:51",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 3
+    },
+    {
+        "id": "AUDIT-20260325-195554",
+        "type": "AUDIT",
+        "start": "2026-03-25 19:55:54",
+        "end": "2026-03-25 19:56:05",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 2
+    },
+    {
+        "id": "INFILTRATION-20260325-200123",
+        "type": "INFILTRATION",
+        "start": "2026-03-25 20:01:23",
+        "end": "2026-03-25 20:03:12",
+        "status": "AWAITING_ANALYSIS",
+        "snapshots": 22
+    }
+]
