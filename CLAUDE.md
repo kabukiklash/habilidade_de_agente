@@ -32,12 +32,38 @@ Este projeto contém um Sistema de IA Soberana chamado **Antigravity**, composto
 | `09_SOVEREIGN_SKILLS_ORCHESTRATION` | Governor | Governança de plugins |
 | `10_SOVEREIGN_OPERATIONS` | Ops | Infraestrutura e boot |
 
+## MCP Server (`antigravity-mcp-server/`)
+
+Servidor MCP TypeScript com 8 tools operacionais:
+
+| Tool | Função | Depende CMS? |
+|---|---|---|
+| `read_file_smart` | Leitura comprimida de arquivos grandes (30-60% economia) | Não |
+| `route_llm` | Roteamento multi-LLM (OpenAI, Inception, Pollinations + fallback) | Não |
+| `session_report` | Relatório de tokens e eficiência | Não |
+| `search_memory` | Busca semântica na memória CMS | Sim |
+| `store_memory` | Persistência de conhecimento | Sim |
+| `log_decision` | Registro de decisões arquiteturais | Sim |
+| `store_event` | Registro de eventos de sistema | Sim |
+| `log_response` | Registro de consumo de tokens | Sim |
+
+**CMS roda em `localhost:8090`** — header: `X-ACE-API-KEY`
+
+### LLM Router — Strategies
+
+| Strategy | Provider primário | Uso |
+|---|---|---|
+| `fast` | Pollinations (gratuito) | Tarefas simples, rascunhos |
+| `balanced` | OpenAI (gpt-4o-mini) | Dia-a-dia, custo-benefício |
+| `quality` | Inception (mercury-2) | Qualidade máxima |
+
 ## Regras Importantes
 
 - **NÃO modificar** os arquivos das pastas 01-10 sem autorização explícita — pertencem a outra plataforma
 - Os arquivos `*_master.py` são produção — só leitura
 - Novos desenvolvimentos vão em pastas separadas
 - Usar o Cognitive Kit para registrar decisões e memórias
+- **`.mcp.json` contém API keys** — nunca commitar (já no `.gitignore`)
 
 ## Salvar Memória após Cada Sessão Importante
 
