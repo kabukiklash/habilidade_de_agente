@@ -37,3 +37,4 @@ build/
 
 # External Projects / Submodules
 WORKSPACE/PROJETOS/AfixcontrolAfixgraf/
+.mcp.json
