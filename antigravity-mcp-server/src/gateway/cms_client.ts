@@ -116,7 +116,8 @@ export class CmsUnavailableError extends Error {
 
 export class CmsHttpError extends Error {
   constructor(public status: number, body: string) {
-    super(`CMS HTTP ${status}: ${body}`);
+    const safeBody = body.length > 200 ? body.slice(0, 200) + "...[truncated]" : body;
+    super(`CMS HTTP ${status}: ${safeBody}`);
     this.name = "CmsHttpError";
   }
 }

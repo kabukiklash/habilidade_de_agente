@@ -6,7 +6,7 @@
 export const config = {
   cms: {
     baseUrl: process.env.CMS_BASE_URL ?? "http://localhost:8090",
-    apiKey:  process.env.CMS_API_KEY  ?? "ace-genesis-sovereign-key-2026",
+    apiKey:  process.env.CMS_API_KEY  ?? (() => { throw new Error("CMS_API_KEY env var is required"); })(),
     timeoutMs: parseInt(process.env.CMS_TIMEOUT_MS ?? "5000", 10),
   },
   dedup: {
