@@ -1,0 +1,205 @@
+{
+  "generated_at": "2026-04-10T16:50:44.127187+00:00",
+  "stats": {
+    "total_nodes": 4197,
+    "total_edges": 3840,
+    "density": 0.91
+  },
+  "top_nodes": [
+    {
+      "name": "inspect_antigravity.py",
+      "type": "file",
+      "file_path": "inspect_antigravity.py",
+      "connections": 0
+    },
+    {
+      "name": "inspect_dbs.py",
+      "type": "file",
+      "file_path": "inspect_dbs.py",
+      "connections": 0
+    },
+    {
+      "name": "db.py",
+      "type": "file",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\db.py",
+      "connections": 0
+    },
+    {
+      "name": "get_db",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\db.py",
+      "connections": 0
+    },
+    {
+      "name": "main.py",
+      "type": "file",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\main.py",
+      "connections": 0
+    },
+    {
+      "name": "health_check",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\main.py",
+      "connections": 0
+    },
+    {
+      "name": "security.py",
+      "type": "file",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\security.py",
+      "connections": 0
+    },
+    {
+      "name": "_is_rate_limited",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\security.py",
+      "connections": 0
+    },
+    {
+      "name": "_record_failure",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\security.py",
+      "connections": 0
+    },
+    {
+      "name": "ZeroTrustMiddleware",
+      "type": "class",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\security.py",
+      "connections": 0
+    },
+    {
+      "name": "dispatch",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\security.py",
+      "connections": 0
+    },
+    {
+      "name": "websocket_handshake_auth",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\security.py",
+      "connections": 0
+    },
+    {
+      "name": "__init__.py",
+      "type": "file",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\__init__.py",
+      "connections": 0
+    },
+    {
+      "name": "audits.py",
+      "type": "file",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\audits.py",
+      "connections": 0
+    },
+    {
+      "name": "AuditAppendRequest",
+      "type": "class",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\audits.py",
+      "connections": 0
+    },
+    {
+      "name": "AuditRecord",
+      "type": "class",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\audits.py",
+      "connections": 0
+    },
+    {
+      "name": "append_audit",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\audits.py",
+      "connections": 0
+    },
+    {
+      "name": "get_audit_history",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\audits.py",
+      "connections": 0
+    },
+    {
+      "name": "get_audit_stats",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\audits.py",
+      "connections": 0
+    },
+    {
+      "name": "governance.py",
+      "type": "file",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\governance.py",
+      "connections": 0
+    },
+    {
+      "name": "ForgetRequest",
+      "type": "class",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\governance.py",
+      "connections": 0
+    },
+    {
+      "name": "ForgetResponse",
+      "type": "class",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\governance.py",
+      "connections": 0
+    },
+    {
+      "name": "revoke_and_deindex",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\governance.py",
+      "connections": 0
+    },
+    {
+      "name": "pin_item",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\governance.py",
+      "connections": 0
+    },
+    {
+      "name": "unpin_item",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\governance.py",
+      "connections": 0
+    },
+    {
+      "name": "list_policies",
+      "type": "function",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\governance.py",
+      "connections": 0
+    },
+    {
+      "name": "memory.py",
+      "type": "file",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\memory.py",
+      "connections": 0
+    },
+    {
+      "name": "MemoryQueryRequest",
+      "type": "class",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\memory.py",
+      "connections": 0
+    },
+    {
+      "name": "ContextPack",
+      "type": "class",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\memory.py",
+      "connections": 0
+    },
+    {
+      "name": "MemoryQueryResponse",
+      "type": "class",
+      "file_path": "01_COGNITIVE_MEMORY_SERVICE\\api\\app\\routes\\memory.py",
+      "connections": 0
+    }
+  ],
+  "by_type": [
+    {
+      "type": "function",
+      "count": 3279
+    },
+    {
+      "type": "file",
+      "count": 640
+    },
+    {
+      "type": "class",
+      "count": 278
+    }
+  ],
+  "sample_edges": []
+}

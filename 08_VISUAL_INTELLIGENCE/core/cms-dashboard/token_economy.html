@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antigravity — Token Economy</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --text: #e0e0e0;
+    --dim: #888;
+    --accent: #00d4aa;
+    --accent2: #6366f1;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  nav .logo { font-size: 18px; font-weight: 700; color: var(--accent); }
+  nav a {
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  nav a:hover, nav a.active { color: var(--text); background: var(--border); }
+  nav a.active { color: var(--accent); }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { color: var(--dim); font-size: 14px; margin-bottom: 24px; }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .kpi-label { font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+  .kpi-value { font-size: 32px; font-weight: 700; margin: 8px 0 4px; }
+  .kpi-detail { font-size: 13px; color: var(--dim); }
+  .kpi-value.accent { color: var(--accent); }
+  .kpi-value.accent2 { color: var(--accent2); }
+  .kpi-value.warn { color: var(--warn); }
+
+  .chart-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .chart-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+  .chart-container { position: relative; height: 300px; }
+
+  .session-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .session-table th {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--dim);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  .session-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-good { background: rgba(0,212,170,0.15); color: var(--accent); }
+  .badge-neutral { background: rgba(99,102,241,0.15); color: var(--accent2); }
+  .generated { text-align: center; color: var(--dim); font-size: 12px; padding: 24px; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="logo">ANTIGRAVITY</span>
+  <a href="index.html">Painel</a>
+  <a href="token_economy.html" class="active">Tokens</a>
+  <a href="decision_radar.html">Decisoes</a>
+  <a href="knowledge_graph.html">Grafo</a>
+  <a href="live_proof.html">Prova ao Vivo</a>
+</nav>
+
+<div class="container">
+  <h1>Token Economy</h1>
+  <p class="subtitle">Economia real de tokens por sessao — dados ao vivo dos SQLites do Cognitive Kit</p>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Tokens Usados</div>
+      <div class="kpi-value" id="kpi-used">—</div>
+      <div class="kpi-detail">Total acumulado</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Tokens Salvos</div>
+      <div class="kpi-value accent" id="kpi-saved">—</div>
+      <div class="kpi-detail">Via cache + compressao</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Eficiencia</div>
+      <div class="kpi-value accent2" id="kpi-eff">—</div>
+      <div class="kpi-detail">% de tokens economizados</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Custo Total</div>
+      <div class="kpi-value warn" id="kpi-cost">—</div>
+      <div class="kpi-detail">USD estimado</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Custo Evitado</div>
+      <div class="kpi-value accent" id="kpi-avoided">—</div>
+      <div class="kpi-detail">USD economizado pelo cache</div>
+    </div>
+  </div>
+
+  <div class="chart-section">
+    <div class="chart-title">Tokens por Sessao — Usados vs. Salvos</div>
+    <div class="chart-container">
+      <canvas id="chart-sessions"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-section">
+    <div class="chart-title">Economia Acumulada</div>
+    <div class="chart-container">
+      <canvas id="chart-cumulative"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-section">
+    <div class="chart-title">Detalhamento por Sessao</div>
+    <div style="overflow-x: auto;">
+      <table class="session-table">
+        <thead>
+          <tr>
+            <th>Sessao</th>
+            <th>Usados</th>
+            <th>Salvos</th>
+            <th>Eficiencia</th>
+            <th>Custo USD</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody id="session-rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="generated" id="generated-at"></div>
+</div>
+
+<script>
+async function loadData() {
+  const res = await fetch('data/token_economy.json');
+  const data = await res.json();
+  render(data);
+}
+
+function fmt(n) { return n.toLocaleString('pt-BR'); }
+
+function render(data) {
+  const t = data.totals;
+
+  document.getElementById('kpi-used').textContent = fmt(t.tokens_used);
+  document.getElementById('kpi-saved').textContent = fmt(t.tokens_saved);
+  document.getElementById('kpi-eff').textContent = t.efficiency_pct + '%';
+  document.getElementById('kpi-cost').textContent = '$' + t.cost_usd.toFixed(4);
+  document.getElementById('kpi-avoided').textContent = '$' + t.cost_avoided_usd.toFixed(4);
+  document.getElementById('generated-at').textContent = 'Dados gerados em: ' + data.generated_at.slice(0,16).replace('T',' ');
+
+  // Filtrar sessões com dados significativos
+  const sessions = data.sessions.filter(s => s.tokens_used > 0);
+  const labels = sessions.map(s => s.session_id.slice(0,8));
+
+  // Chart 1: Por sessão
+  new Chart(document.getElementById('chart-sessions'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Tokens Usados',
+          data: sessions.map(s => s.tokens_used),
+          backgroundColor: 'rgba(99,102,241,0.7)',
+          borderRadius: 4,
+        },
+        {
+          label: 'Tokens Salvos',
+          data: sessions.map(s => s.tokens_saved),
+          backgroundColor: 'rgba(0,212,170,0.7)',
+          borderRadius: 4,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#888' } }
+      },
+      scales: {
+        x: { ticks: { color: '#888' }, grid: { color: '#1e1e2e' } },
+        y: { ticks: { color: '#888' }, grid: { color: '#1e1e2e' } },
+      }
+    }
+  });
+
+  // Chart 2: Acumulado
+  new Chart(document.getElementById('chart-cumulative'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Custo Acumulado (USD)',
+          data: sessions.map(s => s.cumulative_cost),
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,0.1)',
+          fill: true,
+          tension: 0.3,
+        },
+        {
+          label: 'Tokens Salvos (acumulado)',
+          data: sessions.map(s => s.cumulative_saved),
+          borderColor: '#00d4aa',
+          backgroundColor: 'rgba(0,212,170,0.1)',
+          fill: true,
+          tension: 0.3,
+          yAxisID: 'y1',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#888' } }
+      },
+      scales: {
+        x: { ticks: { color: '#888' }, grid: { color: '#1e1e2e' } },
+        y: { ticks: { color: '#888' }, grid: { color: '#1e1e2e' }, title: { display: true, text: 'USD', color: '#888' } },
+        y1: { position: 'right', ticks: { color: '#888' }, grid: { display: false }, title: { display: true, text: 'Tokens Salvos', color: '#888' } },
+      }
+    }
+  });
+
+  // Table
+  const tbody = document.getElementById('session-rows');
+  sessions.slice().reverse().forEach(s => {
+    const tr = document.createElement('tr');
+    const badge = s.efficiency_pct > 0
+      ? `<span class="badge badge-good">${s.efficiency_pct}%</span>`
+      : `<span class="badge badge-neutral">0%</span>`;
+    tr.innerHTML = `
+      <td><code>${s.session_id.slice(0,12)}</code></td>
+      <td>${fmt(s.tokens_used)}</td>
+      <td>${fmt(s.tokens_saved)}</td>
+      <td>${badge}</td>
+      <td>$${s.cost_usd.toFixed(4)}</td>
+      <td>${s.timestamp ? s.timestamp.slice(0,16).replace('T',' ') : '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+loadData();
+</script>
+</body>
+</html>

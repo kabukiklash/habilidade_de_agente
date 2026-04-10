@@ -1,475 +1,297 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CMS Investor Portal | Antigravity AI</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
-        rel="stylesheet">
-    <style>
-        :root {
-            --bg: #020205;
-            --surface: #0a0a0f;
-            --primary: #00f2ff;
-            --secondary: #7000ff;
-            --accent: #ff007a;
-            --text: #e1e1e6;
-            --text-dim: #88889a;
-            --border: rgba(255, 255, 255, 0.08);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antigravity — Painel de Comando</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --text: #e0e0e0;
+    --dim: #888;
+    --accent: #00d4aa;
+    --accent2: #6366f1;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  nav .logo { font-size: 18px; font-weight: 700; color: var(--accent); }
+  nav a {
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  nav a:hover, nav a.active { color: var(--text); background: var(--border); }
+  nav a.active { color: var(--accent); }
 
-        * {
-            box-sizing: border-box;
-        }
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { color: var(--dim); font-size: 14px; margin-bottom: 24px; }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .hero-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+  }
+  .hero-value { font-size: 28px; font-weight: 700; }
+  .hero-label { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .hero-value.green { color: var(--accent); }
+  .hero-value.purple { color: var(--accent2); }
+  .hero-value.yellow { color: var(--warn); }
 
-        /* Ambient background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -10%;
-            left: -10%;
-            width: 120%;
-            height: 120%;
-            background: radial-gradient(circle at 20% 20%, rgba(112, 0, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(0, 242, 255, 0.05) 0%, transparent 40%);
-            z-index: -1;
-        }
+  .section-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 768px) { .section-grid { grid-template-columns: 1fr; } }
 
-        /* Global Nav */
-        .global-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 3rem;
-            background: rgba(10, 10, 15, 0.8);
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-green { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .dot-yellow { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+  .dot-red { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
 
-        .nav-logo {
-            font-weight: 700;
-            text-decoration: none;
-            color: var(--text);
-            letter-spacing: 1px;
-            font-size: 1rem;
-        }
+  .module-list { list-style: none; }
+  .module-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .module-list li:last-child { border-bottom: none; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-ok { background: rgba(0,212,170,0.15); color: var(--accent); }
+  .badge-off { background: rgba(136,136,136,0.15); color: var(--dim); }
 
-        .nav-logo span {
-            color: var(--primary);
-        }
+  .diary-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .diary-field { margin-bottom: 12px; }
+  .diary-field-label { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .diary-field-value { font-size: 13px; line-height: 1.5; color: var(--text); }
 
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-dim);
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary);
-        }
-
-        .nav-status {
-            font-family: 'JetBrains Mono';
-            font-size: 0.7rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .hero-header {
-            text-align: center;
-            padding: 6rem 2rem 4rem;
-            position: relative;
-        }
-
-        .hero-title {
-            font-size: 3.5rem;
-            font-weight: 700;
-            letter-spacing: -2px;
-            margin: 0;
-            text-align: center;
-        }
-
-        .hero-title span {
-            color: var(--primary);
-            text-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
-        }
-
-        .hero-subtitle {
-            color: var(--text-dim);
-            font-size: 1.2rem;
-            margin-top: 1rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
-        }
-
-        .portal-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            padding: 4rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .portal-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 2rem;
-            border-radius: 12px;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .portal-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-5px);
-            background: rgba(0, 242, 255, 0.02);
-        }
-
-        .card-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .card-desc {
-            font-size: 0.9rem;
-            color: var(--text-dim);
-            line-height: 1.5;
-        }
-
-        .card-tag {
-            font-family: 'JetBrains Mono';
-            font-size: 0.7rem;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        footer {
-            margin-top: auto;
-            padding: 3rem;
-            text-align: center;
-            border-top: 1px solid var(--border);
-            font-family: 'JetBrains Mono';
-            font-size: 0.8rem;
-            color: var(--text-dim);
-        }
-
-        /* Modern Shared Sidebar Navigation */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            width: 240px;
-            background: var(--surface);
-            border-right: 1px solid var(--border);
-            padding: 2rem 1.5rem;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 1.5rem;
-            margin-bottom: 3rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: var(--primary);
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: var(--text-dim);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            background: rgba(0, 242, 255, 0.1);
-            color: var(--primary);
-        }
-
-        .main-wrapper {
-            margin-left: 240px;
-        }
-    </style>
+  .generated { text-align: center; color: var(--dim); font-size: 12px; padding: 24px; }
+</style>
 </head>
-
 <body>
+<nav>
+  <span class="logo">ANTIGRAVITY</span>
+  <a href="index.html" class="active">Painel</a>
+  <a href="token_economy.html">Tokens</a>
+  <a href="decision_radar.html">Decisoes</a>
+  <a href="knowledge_graph.html">Grafo</a>
+  <a href="live_proof.html">Prova ao Vivo</a>
+</nav>
 
-    <nav class="sidebar">
-        <div class="logo">
-            <span>🧠</span> EVO_IA
-        </div>
-        <a href="#" class="nav-link" onclick="navigate('evo_ia.html')">📖 A Crônica</a>
-        <a href="#" class="nav-link" onclick="navigate('glass_brain.html')">👁️ Control Plane</a>
-        <a href="#" class="nav-link" onclick="navigate('roi_simulator.html')">📈 ROI Simulator</a>
-        <a href="#" class="nav-link" onclick="navigate('token_ledger.html')">💎 Token Ledger</a>
-        <a href="#" class="nav-link active" onclick="navigate('index.html')">🚪 Dashboard Original</a>
-    </nav>
+<div class="container">
+  <h1>Painel de Comando</h1>
+  <p class="subtitle">Visao geral do ecossistema Antigravity — dados reais dos SQLites</p>
 
-    <div class="main-wrapper">
-        <nav class="global-nav">
-            <a href="index.html" class="nav-logo">ANTIGRAVITY <span>CMS</span></a>
-            <div class="nav-links">
-                <a href="report_analysis.html">Analysis</a>
-                <a href="neural_interface.html">Brain</a>
-                <a href="roi_simulator.html">ROI</a>
-                <a href="audit_timeline.html">Audit</a>
-                <a href="data_lifecycle.html">Lifecycle</a>
-                <a href="knowledge_map.html">Map</a>
-            </div>
-            <div class="nav-status">● SYSTEM_LIVE</div>
-        </nav>
+  <div class="hero-grid">
+    <div class="hero-card">
+      <div class="hero-value green" id="h-saved">—</div>
+      <div class="hero-label">Tokens Salvos</div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-value purple" id="h-eff">—</div>
+      <div class="hero-label">Eficiencia</div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-value yellow" id="h-cost">—</div>
+      <div class="hero-label">Custo USD</div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-value" id="h-memories">—</div>
+      <div class="hero-label">Memorias</div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-value" id="h-decisions">—</div>
+      <div class="hero-label">Decisoes</div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-value purple" id="h-nodes">—</div>
+      <div class="hero-label">Nos no Grafo</div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-value" id="h-sessions">—</div>
+      <div class="hero-label">Sessoes</div>
+    </div>
+  </div>
 
-        <header class="hero-header">
-            <h1 class="hero-title">CMS Investor <span>Experience</span></h1>
-            <p class="hero-subtitle">ISO-Compliant Cognitive Infrastructure. Explore the future of persistent AI memory,
-                auditability, and strategic business intelligence.</p>
-        </header>
+  <div class="diary-panel" id="diary-section" style="display:none">
+    <div class="panel-title">Diario da Ultima Sessao</div>
+    <div class="diary-field">
+      <div class="diary-field-label">Feito</div>
+      <div class="diary-field-value" id="diary-done">—</div>
+    </div>
+    <div class="diary-field">
+      <div class="diary-field-label">Pendente</div>
+      <div class="diary-field-value" id="diary-pending">—</div>
+    </div>
+    <div class="diary-field">
+      <div class="diary-field-label">Decisoes</div>
+      <div class="diary-field-value" id="diary-decisions">—</div>
+    </div>
+    <div class="diary-field">
+      <div class="diary-field-label">Contexto</div>
+      <div class="diary-field-value" id="diary-context">—</div>
+    </div>
+  </div>
 
-        <style>
-            .token-block-link {
-                text-decoration: none;
-                display: block;
-                margin: 0 auto 2rem auto;
-                max-width: 1200px;
-                padding: 0 4rem;
-            }
+  <div class="section-grid">
+    <div class="panel">
+      <div class="panel-title"><span class="status-dot dot-green"></span> Cognitive Kit — 8 Modulos</div>
+      <ul class="module-list">
+        <li><span>01 Memory Store</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>02 Context Cache</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>03 Token Tracker</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>04 Decision Logger</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>05 Knowledge Graph</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>06 Friction Engine</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>07 Intent Guard</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>08 Session Diary</span><span class="badge badge-ok">ATIVO</span></li>
+      </ul>
+    </div>
 
-            .token-block {
-                background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 255, 136, 0.02) 100%);
-                border: 1px solid rgba(0, 255, 136, 0.3);
-                border-radius: 24px;
-                padding: 2.5rem;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                box-shadow: 0 10px 30px rgba(0, 255, 136, 0.05);
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
+    <div class="panel">
+      <div class="panel-title"><span class="status-dot dot-green"></span> MCP Server — 8 Tools</div>
+      <ul class="module-list">
+        <li><span>store_memory</span><span class="badge badge-ok">CMS</span></li>
+        <li><span>search_memory</span><span class="badge badge-ok">CMS</span></li>
+        <li><span>store_event</span><span class="badge badge-ok">CMS</span></li>
+        <li><span>log_decision</span><span class="badge badge-ok">CMS</span></li>
+        <li><span>log_response</span><span class="badge badge-ok">CMS</span></li>
+        <li><span>read_file_smart</span><span class="badge badge-ok">LOCAL</span></li>
+        <li><span>route_llm</span><span class="badge badge-ok">API</span></li>
+        <li><span>session_report</span><span class="badge badge-ok">CMS</span></li>
+      </ul>
+    </div>
 
-            .token-block:hover {
-                border-color: #00ff88;
-                transform: translateY(-5px);
-                box-shadow: 0 15px 40px rgba(0, 255, 136, 0.15);
-            }
-        </style>
-        <!-- TOKEN ECONOMY HIGHLIGHT -->
-        <a href="token_ledger.html" class="token-block-link">
-            <div class="token-block">
-                <div>
-                    <h2 style="margin: 0 0 10px 0; color: #00ff88; font-size: 1.8rem;">Economia de Tokens (ROI)</h2>
-                    <p style="margin: 0; color: var(--text-dim); font-size: 1rem; max-width: 500px;">
-                        O Antigravity CMS já protegeu seu orçamento comprimindo o histórico e enviando apenas
-                        inteligência
-                        filtrada.
-                    </p>
-                </div>
-                <div style="display: flex; gap: 3rem; text-align: right;">
-                    <div>
-                        <div style="font-size: 3rem; font-weight: 800; color: #fff; line-height: 1;"
-                            id="tokens-saved-value">--</div>
-                        <div
-                            style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #00ff88; letter-spacing: 1px; margin-top: 5px;">
-                            TOKENS ECONOMIZADOS</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 3rem; font-weight: 800; color: #fff; line-height: 1;"
-                            id="efficiency-value">
-                            --%</div>
-                        <div
-                            style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--primary); letter-spacing: 1px; margin-top: 5px;">
-                            MAIS EFICIENTE</div>
-                    </div>
-                </div>
-            </div>
-        </a>
+    <div class="panel">
+      <div class="panel-title"><span class="status-dot dot-green"></span> Seguranca</div>
+      <ul class="module-list">
+        <li><span>Output Sanitizer (anti-injection)</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>ACE Input Validation</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>Circuit Breaker</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>Loop Guard</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>WAL Mode (concorrencia)</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>SHA-256 Diary Integrity</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>Sensitive Data Sanitize</span><span class="badge badge-ok">ATIVO</span></li>
+      </ul>
+    </div>
 
-        <div class="portal-grid">
+    <div class="panel">
+      <div class="panel-title"><span class="status-dot dot-yellow"></span> LLM Router — 3/6 Providers</div>
+      <ul class="module-list">
+        <li><span>OpenAI (gpt-4o-mini)</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>Inception (mercury-2)</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>Pollinations (gpt-oss-20b)</span><span class="badge badge-ok">ATIVO</span></li>
+        <li><span>Groq</span><span class="badge badge-off">SEM KEY</span></li>
+        <li><span>Kimi</span><span class="badge badge-off">SEM KEY</span></li>
+        <li><span>MiniMax</span><span class="badge badge-off">SEM KEY</span></li>
+      </ul>
+    </div>
+  </div>
 
-            <!-- ACE DEV KIT -->
-            <a href="file:///C:/Users/RobsonSilva-AfixGraf/Habilidade_de_agente/antigravity_power_kit.html#features"
-                class="portal-card card-main"
-                style="background: linear-gradient(90deg, rgba(0, 255, 136, 0.05) 0%, var(--surface) 100%); border-color: rgba(0, 255, 136, 0.3);">
-                <div style="flex: 1;">
-                    <div class="card-tag" style="color: #00ff88;">IDE Integration</div>
-                    <div class="card-title" style="font-size: 2rem; margin-top: 5px;">ACE Dev Kit <span
-                            style="font-size: 0.8rem; vertical-align: middle; background: #00ff88; color: black; padding: 2px 8px; border-radius: 12px; margin-left: 10px;">NOVO</span>
-                    </div>
-                    <p class="card-desc">O Motor de Contexto Antigravidade. Governança arquitetural em tempo real
-                        injetada
-                        diretamente no Cursor e VS Code. Zero API calls.</p>
-                </div>
-                <div style="font-size: 3rem;">⚡</div>
-            </a>
+  <div class="panel" style="margin-bottom:24px">
+    <div class="panel-title" id="guard-title"><span class="status-dot dot-green"></span> Intent Guard</div>
+    <div id="guard-intent" style="font-size:14px; color: var(--text);">Carregando...</div>
+  </div>
 
-            <!-- MAIN ANALYSIS -->
-            <a href="report_analysis.html" class="portal-card card-main">
-                <div style="flex: 1;">
-                    <div class="card-tag">Executive Summary</div>
-                    <div class="card-title" style="font-size: 2rem; margin-top: 5px;">Relatório de Valuation & Impacto
-                    </div>
-                    <p class="card-desc">Análise profunda baseada em benchmarks de mercado (VelesDB, Mem0). Projeção de
-                        ROI
-                        e visão estratégica SOC 2 / HIPAA compliance.</p>
-                </div>
-                <div style="font-size: 3rem;">📊</div>
-            </a>
+  <div class="generated" id="generated-at"></div>
+</div>
 
-            <!-- NEURAL INTERFACE -->
-            <a href="neural_interface.html" class="portal-card">
-                <div class="card-icon">🧠</div>
-                <div class="card-tag">Direct Demo</div>
-                <div class="card-title">Interface Neural</div>
-                <p class="card-desc">Simulação 3D de alta fidelidade do cérebro digital e poda de conceitos em tempo
-                    real.
-                </p>
-            </a>
+<script>
+async function loadData() {
+  const res = await fetch('data/overview.json');
+  const d = await res.json();
 
-            <!-- ROI SIMULATOR -->
-            <a href="roi_simulator.html" class="portal-card">
-                <div class="card-icon">💰</div>
-                <div class="card-tag">Numbers & Growth</div>
-                <div class="card-title">Simulador de ROI</div>
-                <p class="card-desc">Comparação direta de custos de tokens entre IA padrão e a economia cirúrgica do
-                    CMS.
-                </p>
-            </a>
+  document.getElementById('h-saved').textContent = d.tokens.saved.toLocaleString('pt-BR');
+  document.getElementById('h-eff').textContent = d.tokens.efficiency_pct + '%';
+  document.getElementById('h-cost').textContent = '$' + d.tokens.cost_usd.toFixed(4);
+  document.getElementById('h-memories').textContent = d.memories;
+  document.getElementById('h-decisions').textContent = Object.values(d.decisions || {}).reduce((a,b)=>a+b, 0);
+  document.getElementById('h-nodes').textContent = d.graph.nodes.toLocaleString('pt-BR');
+  document.getElementById('h-sessions').textContent = d.sessions_registered;
+  document.getElementById('generated-at').textContent = 'Dados gerados em: ' + d.generated_at.slice(0,16).replace('T',' ');
 
-            <!-- TIME MACHINE -->
-            <a href="audit_timeline.html" class="portal-card">
-                <div class="card-icon">🕒</div>
-                <div class="card-tag">Security & Compliance</div>
-                <div class="card-title">Time Machine Audit</div>
-                <p class="card-desc">Visualização do ledger imutável e verificações criptográficas SHA256.</p>
-            </a>
+  if (d.last_diary) {
+    document.getElementById('diary-section').style.display = 'block';
+    document.getElementById('diary-done').textContent = d.last_diary.what_done || '—';
+    document.getElementById('diary-pending').textContent = d.last_diary.pending || '—';
+    document.getElementById('diary-decisions').textContent = d.last_diary.decisions || '—';
+    document.getElementById('diary-context').textContent = d.last_diary.context || '—';
+  }
 
-            <!-- DATA LIFECYCLE -->
-            <a href="data_lifecycle.html" class="portal-card">
-                <div class="card-icon">♻️</div>
-                <div class="card-tag">Governance</div>
-                <div class="card-title">O Triturador de Dados</div>
-                <p class="card-desc">Observabilidade técnica sobre o ciclo de vida dos dados, TTL e o direito ao
-                    esquecimento.</p>
-            </a>
-
-            <!-- KNOWLEDGE MAP -->
-            <a href="knowledge_map.html" class="portal-card">
-                <div class="card-icon">🗺️</div>
-                <div class="card-tag">Intelligence</div>
-                <div class="card-title">Mapa de Calor Semântico</div>
-                <p class="card-desc">Visão estratégica da concentração de conhecimento e áreas de aprendizado ativo.</p>
-            </a>
-
-            <!-- DEPRECATED DASHBOARD (Kept for compatibility) -->
-            <a href="investor_dashboard.html" class="portal-card">
-                <div class="card-icon">📑</div>
-                <div class="card-tag">Legacy Case</div>
-                <div class="card-title">Dashboard Executivo</div>
-                <p class="card-desc">A visão clássica do pulse de memória e análise de evidências.</p>
-            </a>
-
-        </div>
-
-    </div> <!-- end main-wrapper -->
-
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const CURRENT_API_KEY = urlParams.get('api_key');
-
-        async function fetchTokenEconomyStats() {
-            try {
-                const headers = { 'X-ACE-API-KEY': CURRENT_API_KEY || '' };
-
-                // Fetch total saved tokens from Audits Ledger (EVO-04)
-                const auditResponse = await fetch('http://localhost:8090/audits/stats', { headers });
-                if (auditResponse.ok) {
-                    const auditData = await auditResponse.json();
-                    const tokensSavedEl = document.getElementById('tokens-saved-value');
-                    if (tokensSavedEl) {
-                        tokensSavedEl.innerText = (auditData.total_tokens_saved || 0).toLocaleString();
-                    }
-                }
-
-                // Fetch efficiency from Events Stats
-                const eventResponse = await fetch('http://localhost:8090/tables/events/stats', { headers });
-                if (eventResponse.ok) {
-                    const eventData = await eventResponse.json();
-                    const efficiencyEl = document.getElementById('efficiency-value');
-                    if (efficiencyEl) {
-                        efficiencyEl.innerText = (eventData.efficiency_percent || 0.0) + '%';
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to load token economy stats:", error);
-            }
-        }
-
-        function navigate(page) {
-            if (CURRENT_API_KEY) {
-                window.location.href = `${page}?api_key=${CURRENT_API_KEY}`;
-            } else {
-                window.location.href = page;
-            }
-        }
-
-        // Fetch on load
-        document.addEventListener('DOMContentLoaded', fetchTokenEconomyStats);
-        // Add interval to update every 15 seconds
-        setInterval(fetchTokenEconomyStats, 15000);
-    </script>
+  if (d.intent) {
+    const dot = d.intent.guard_active ? 'dot-green' : 'dot-red';
+    const status = d.intent.guard_active ? 'ATIVO' : 'DESATIVADO';
+    document.getElementById('guard-title').innerHTML = '<span class="status-dot ' + dot + '"></span> Intent Guard — ' + status;
+    document.getElementById('guard-intent').textContent = d.intent.text;
+  }
+}
+loadData();
+</script>
 </body>
-
 </html>

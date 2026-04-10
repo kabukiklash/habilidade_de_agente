@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-04-10T16:50:37.100056+00:00",
+  "project": "Habilidade_de_agente",
+  "tokens": {
+    "used": 37696,
+    "saved": 7498,
+    "cost_usd": 0.375,
+    "sessions": 55,
+    "efficiency_pct": 16.6
+  },
+  "memories": 10,
+  "sessions_registered": 11,
+  "decisions": {
+    "approved": 6
+  },
+  "graph": {
+    "nodes": 4197,
+    "edges": 3840
+  },
+  "cache": {
+    "total_files": 21,
+    "with_summary": 9
+  },
+  "friction_entries": 43,
+  "last_diary": {
+    "session_id": "b97a5cce",
+    "ended_at": "2026-04-09T15:16:14.022797+00:00",
+    "what_done": "Session Diary 100% implementado e testado. Save/load/purge/hash/sanitize todos OK.",
+    "pending": "Commit pendente.",
+    "decisions": "Aprovado: Session Diary como modulo 08.",
+    "context": "Etapa final da sessao."
+  },
+  "intent": {
+    "text": "Validar pipeline completo: cache, router, intent guard, decisoes. Corrigir bugs e subir eficiencia de tokens.",
+    "guard_active": true
+  }
+}

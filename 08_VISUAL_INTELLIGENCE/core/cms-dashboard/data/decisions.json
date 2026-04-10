@@ -1,0 +1,370 @@
+{
+  "generated_at": "2026-04-10T16:50:37.267432+00:00",
+  "decisions": [
+    {
+      "id": 6,
+      "task": "Hook threshold 150 -> 120 linhas",
+      "decision": "Alinhar threshold do PreToolUse hook com o max_lines do read_file_smart. Resultado: 5 arquivos adicionais cobertos (token_tracker, decision_logger, intent_store, context_compressor, memory_store).",
+      "status": "approved",
+      "rationale": "",
+      "session_id": "c69758e4",
+      "recorded_at": "2026-04-07T01:35:01.637669+00:00"
+    },
+    {
+      "id": 5,
+      "task": "Pollinations como fallback gratuito",
+      "decision": "Adicionar pollinations (gpt-oss-20b, sem chave) como ultimo fallback em todas as estrategias. Garante que o router nunca falha por falta de providers.",
+      "status": "approved",
+      "rationale": "",
+      "session_id": "2f783904",
+      "recorded_at": "2026-04-07T01:35:00.559096+00:00"
+    },
+    {
+      "id": 4,
+      "task": "Modelo padrao Kimi",
+      "decision": "moonshot-v1-8k em vez de kimi-latest. Motivo: kimi-latest retorna 404 nessa conta — modelo nao existe.",
+      "status": "approved",
+      "rationale": "",
+      "session_id": "a25565bd",
+      "recorded_at": "2026-04-07T01:34:59.535701+00:00"
+    },
+    {
+      "id": 3,
+      "task": "Modelo padrao Inception",
+      "decision": "mercury-2 em vez de mercury-coder-small. Motivo: mercury-coder-small descontinuado para contas criadas apos fev/2026.",
+      "status": "approved",
+      "rationale": "",
+      "session_id": "02cf2a5e",
+      "recorded_at": "2026-04-07T01:34:58.338020+00:00"
+    },
+    {
+      "id": 2,
+      "task": "LLM Router architecture",
+      "decision": "Router TypeScript no MCP server (Direction A) em vez de proxy completo estilo OpenClaude (Direction B). Motivo: aproveita providers ja existentes no 12_CONSILIUM_ENGINE, entrega valor rapido, sem mudar fluxo do Claude Code.",
+      "status": "approved",
+      "rationale": "",
+      "session_id": "c7400ed1",
+      "recorded_at": "2026-04-07T01:34:57.081245+00:00"
+    },
+    {
+      "id": 1,
+      "task": "criar 14_CLAUDE_SOVEREIGN_LAYER separado",
+      "decision": "NAO criar — MCP Server ja existe em antigravity-mcp-server/ com as mesmas funcionalidades. Evitar duplicacao.",
+      "status": "approved",
+      "rationale": "Decisao tomada em 2026-04-06 apos analise completa do antigravity-mcp-server",
+      "session_id": "74cba476",
+      "recorded_at": "2026-04-06T15:05:05.070576+00:00"
+    }
+  ],
+  "friction_log": [
+    {
+      "action": "I'm rebuilding a product dashboard for an AI agent infrastructure. I have REAL data in SQLite databases:\n- token_events:",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-10T15:55:50.019597+00:00"
+    },
+    {
+      "action": "You are consulting on a product dashboard for an AI agent infrastructure. Context:\n\nREAL functional components:\n- 8 Pyth",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-10T14:35:47.933411+00:00"
+    },
+    {
+      "action": "You are consulting on a product dashboard redesign. Here is the context:\n\nWe have an AI agent infrastructure called \"Ant",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-10T14:35:36.541349+00:00"
+    },
+    {
+      "action": "deletar arquivo de producao na pasta 01_COGNITIVE_MEMORY_SERVICE",
+      "score": 0.82,
+      "state": "BLOCKED",
+      "sources": "{\"memory\": 0.95, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.0}",
+      "recorded_at": "2026-04-09T18:13:15.431686+00:00"
+    },
+    {
+      "action": "Estamos construindo um sistema de memoria para sessoes de um agente IA (Claude Code). O problema: entre sessoes, o agent",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T02:18:36.984224+00:00"
+    },
+    {
+      "action": "Estamos construindo um sistema de memoria para sessoes de um agente IA (Claude Code). O problema: entre sessoes, o agent",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T02:18:24.685476+00:00"
+    },
+    {
+      "action": "Estamos construindo um sistema de memoria para sessoes de um agente IA (Claude Code). O problema: entre sessoes, o agent",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T02:17:59.836563+00:00"
+    },
+    {
+      "action": "modificar 01_COGNITIVE_MEMORY_SERVICE",
+      "score": 0.82,
+      "state": "BLOCKED",
+      "sources": "{\"memory\": 0.95, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:45.613650+00:00"
+    },
+    {
+      "action": "criar novo componente React",
+      "score": 0.12,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.5, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:17.483487+00:00"
+    },
+    {
+      "action": "criar novo componente React",
+      "score": 0.12,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.5, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:17.405940+00:00"
+    },
+    {
+      "action": "ler arquivo de configuracao",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T01:33:17.323296+00:00"
+    },
+    {
+      "action": "editar server.ts",
+      "score": 0.045,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:17.260032+00:00"
+    },
+    {
+      "action": "editar server.ts",
+      "score": 0.045,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:17.181563+00:00"
+    },
+    {
+      "action": "apagar arquivo do 02_COGNITIVE_CORTEX",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:17.109546+00:00"
+    },
+    {
+      "action": "apagar arquivo do 02_COGNITIVE_CORTEX",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:17.021815+00:00"
+    },
+    {
+      "action": "modificar 01_COGNITIVE_MEMORY_SERVICE",
+      "score": 0.82,
+      "state": "BLOCKED",
+      "sources": "{\"memory\": 0.95, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:16.948068+00:00"
+    },
+    {
+      "action": "modificar 01_COGNITIVE_MEMORY_SERVICE",
+      "score": 0.82,
+      "state": "BLOCKED",
+      "sources": "{\"memory\": 0.95, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:16.868120+00:00"
+    },
+    {
+      "action": "deletar banco de dados de producao",
+      "score": 0.045,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:16.791618+00:00"
+    },
+    {
+      "action": "deletar banco de dados de producao",
+      "score": 0.045,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:33:16.705571+00:00"
+    },
+    {
+      "action": "ler arquivo de configuracao",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:32:22.277724+00:00"
+    },
+    {
+      "action": "editar server.ts",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:32:22.088251+00:00"
+    },
+    {
+      "action": "apagar arquivo do cortex",
+      "score": 0.135,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:32:21.979728+00:00"
+    },
+    {
+      "action": "modificar 01_COGNITIVE_MEMORY_SERVICE",
+      "score": 0.82,
+      "state": "BLOCKED",
+      "sources": "{\"memory\": 0.95, \"decisions\": 0.0, \"graph\": 0.6, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:32:21.868898+00:00"
+    },
+    {
+      "action": "deletar banco de dados de producao",
+      "score": 0.13,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.567, \"intent\": 0.3}",
+      "recorded_at": "2026-04-08T01:32:21.769785+00:00"
+    },
+    {
+      "action": "deletar banco de dados de producao",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T01:15:35.322408+00:00"
+    },
+    {
+      "action": "Responda em uma frase: o que Ã© prompt injection?",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T01:09:08.763938+00:00"
+    },
+    {
+      "action": "Responda em uma frase: o que Ã© um LLM router?",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T01:09:03.877117+00:00"
+    },
+    {
+      "action": "Responda em uma frase: o que Ã© um MCP server no contexto do Claude?",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T01:08:30.052284+00:00"
+    },
+    {
+      "action": "Diga apenas: teste balanced",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T00:58:39.543529+00:00"
+    },
+    {
+      "action": "Diga apenas: teste fast",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T00:58:35.091869+00:00"
+    },
+    {
+      "action": "Diga apenas: ok",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T00:56:58.883443+00:00"
+    },
+    {
+      "action": "Diga apenas: ok",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T00:56:32.645791+00:00"
+    },
+    {
+      "action": "Responda em uma frase: o que Ã© prompt injection?",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T00:56:11.671548+00:00"
+    },
+    {
+      "action": "Responda em uma frase: o que Ã© um LLM router?",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T00:56:06.423158+00:00"
+    },
+    {
+      "action": "Responda em uma frase: o que Ã© um MCP server?",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-08T00:18:56.532217+00:00"
+    },
+    {
+      "action": "apagar pasta inteira",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-07T21:30:07.324710+00:00"
+    },
+    {
+      "action": "editar server.ts",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-07T21:30:07.279593+00:00"
+    },
+    {
+      "action": "deletar banco de dados de producao",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-07T21:30:07.239520+00:00"
+    },
+    {
+      "action": "test route_llm",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-07T01:51:11.446534+00:00"
+    },
+    {
+      "action": "test action",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-07T01:50:56.842058+00:00"
+    },
+    {
+      "action": "analisar arquitetura do LLM Router",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-07T01:40:02.085084+00:00"
+    },
+    {
+      "action": "implementar LLM router no antigravity-mcp-server",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-07T01:35:48.317811+00:00"
+    },
+    {
+      "action": "modificar pasta 01_COGNITIVE_MEMORY_SERVICE",
+      "score": 0.0,
+      "state": "STABLE",
+      "sources": "{\"memory\": 0.0, \"decisions\": 0.0, \"graph\": 0.0, \"intent\": 0.0}",
+      "recorded_at": "2026-04-07T01:35:47.187800+00:00"
+    }
+  ],
+  "summary": {
+    "total_decisions": 6,
+    "approved": 6,
+    "rejected": 0,
+    "total_friction_checks": 43,
+    "avg_friction": 0.143,
+    "blocked_actions": 5
+  }
+}
