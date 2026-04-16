@@ -1,0 +1,23 @@
+{
+  "name": "afixcontrol-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for AfixControl - Database, Git, Encoding, Tests Validation",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "test": "echo \"Tests via MCP tools\""
+  },
+  "keywords": ["mcp", "afixcontrol", "validation"],
+  "author": "Claude + Robson",
+  "license": "MIT",
+  "dependencies": {
+    "mysql2": "^3.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
+  }
+}

@@ -1,26 +1,42 @@
-# 🔦 RELATÓRIO DE AUDITORIA DETALHADA: TECNOLOGIA 06 (AUDIT MONITOR & LEDGER)
+# Audit Monitor / Ledger — Relatório de Auditoria (Código Real)
+**Atualizado:** 2026-04-16 | **Base:** Inspeção de código + testes de execução
 
-Este relatório detalha a saúde técnica e a confiabilidade forense da **Tecnologia 06**.
+## Arquivos de Código Real Verificados
 
-## 🛡️ Verificação de Integridade Forense
+### `core/ledger_manager_master.py` — 347 linhas ⭐ PEÇA CENTRAL
+- Classe `LedgerManager` — Platform-Grade Ledger
+- **Schema SQLite** com: event_id, correlation_id, session_id, host_id, process_id, actor_id, event_type, payload_raw, payload_c14n, payload_hash, justification, tokens_used, tokens_saved, timestamp, prev_hash, current_hash, sig, sync_status
+- **Segurança Append-Only:**
+  - Trigger `ledger_no_update`: Bloqueia UPDATE em event_id, payload_raw, current_hash
+  - Trigger `ledger_no_delete`: Bloqueia 100% das deleções
+- **JSON Canonicalization (C14N):** `json.dumps(data, sort_keys=True, separators=(',',':'))`
+- **Hash Chain:** Genesis Block → SHA-256(event_id + payload_hash + prev_hash)
+- **HMAC:** `hmac.new(secret_key, current_hash, sha256)`
+- **Migrações:** v1→v2 (Platform-Grade), v3 (Token Economy), v4 (2-Layer Sync)
+- **Tabelas Operacionais:** `project_graph`, `per_friction`
+- **Sync Status:** PENDING, SYNCED, LOCAL_ONLY
+- `verify_integrity()`: Re-calcula toda a cadeia hash + signatures
+- `record_graph()`: INSERT OR REPLACE em project_graph
+- `record_friction()`: INSERT em per_friction
 
-*   **Hashing SHA-256**: Confirmado. Cada decisão gravada no Ledger recebe uma assinatura digital baseada em seu conteúdo, impedindo manipulações posteriores sem quebras de integridade.
-*   **Detecção de Desvio (Drift)**: O motor `KimiAuditMonitor` possui lógica para detectar ações proibidas (ex: comandos de deleção ou acesso a infra não autorizada) antes que elas se tornem persistentes.
-*   **Resultados do Teste de Pulso**:
-    *   Entrada: Payload de teste `{'test': 'forensic'}`.
-    *   Saída: Hash gerado com sucesso. **Status: OK**.
+### `core/audit_monitor_master.py` — 85 linhas
+- Classe `KimiAuditMonitor` — Monitor Forense
+- `log_decision_with_intent()`: Vincula decisão a intent_id com integrity hash SHA-256
+- `check_drift()`: Palavras proibidas: delete, rm -rf, shutdown, format
+- `get_kimi_history()`: Consulta via memory_adapter
 
-## 📊 Maturidade Forense
+## Teste Real Executado (2026-04-16)
+```
+Ledger Local: 16 registros, 4 tabelas
+Hash Chain: 10 blocos verificados — ZERO violações
+Sync: PENDING=3, SYNCED=10, LOCAL_ONLY=3
+DELETE: ✅ Bloqueado pelo trigger
+UPDATE: ⚠️ actor_id alterável (by design, payload/hash protegidos)
+```
 
-| Funcionalidade | Status | Observação |
-| :--- | :--- | :--- |
-| **Geração de Hash** | **100%** | Utiliza SHA-256 determinístico. |
-| **Vínculo de Intenção** | **100%** | Correlaciona IDs de tarefa com decisões da IA. |
-| **Check de Drift** | **70%** | Baseado em heurísticas. Pode evoluir para validação semântica profunda. |
+## Dependências Reais
+```
+→ 07_BRIDGE (memory_adapter_master) — Audit Monitor usa para persistir
+```
 
-## ⚖️ Conclusão do Auditor (Antigravity)
-
-O **Audit Monitor** é o "gravador de caixa preta" do Antigravity. Sua integração com a Tecnologia 01 (CMS) via Ponte Soberana garante que o histórico de auditoria seja centralizado e protegido. O isolamento de duplicatas zumbis elimina o risco de logs serem perdidos em arquivos temporários legados.
-
----
-**Auditado por:** Antigravity (Sovereign Mode) 🦅🛡️🔦
+## Status: 🟢 INTACTO (9/10) — Update trigger pode ser endurecido

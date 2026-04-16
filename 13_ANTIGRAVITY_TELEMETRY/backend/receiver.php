@@ -34,8 +34,9 @@ if ($input) {
             foreach($data['events'] as $evt) {
                 $type = strtoupper($evt['type'] ?? 'UNKNOWN');
                 $timestamp = $evt['timestamp'] ?? '';
+                $traceId = $evt['traceId'] ?? 'no-trace';
                 $details = json_encode($evt['data'] ?? [], JSON_UNESCAPED_UNICODE);
-                $logEntry .= "  -> [$type] $timestamp : $details\n";
+                $logEntry .= "  -> [$type] $timestamp [Trace: $traceId] : $details\n";
             }
         }
         $logEntry .= str_repeat("-", 80) . "\n";

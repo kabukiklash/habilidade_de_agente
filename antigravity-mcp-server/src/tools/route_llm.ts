@@ -5,9 +5,10 @@
  * Use this to offload tasks to cheaper/faster models while Claude orchestrates.
  *
  * Strategies:
- *   fast     → Groq / llama3        (lowest latency, ~50ms)
- *   balanced → Kimi / MiniMax  (cost-efficient, strong reasoning)
- *   quality  → Inception / mercury  (highest capability)
+ *   fast        → Pollinations / OpenAI  (lowest latency)
+ *   balanced    → OpenAI / Inception     (cost-efficient, strong reasoning)
+ *   quality     → Inception / OpenAI    (highest capability)
+ *   engineering → Z.ai GLM-5.1          (SWE tasks, código, refatoração)
  *
  * Output is automatically sanitized against prompt injection before
  * being returned to Claude.
@@ -25,12 +26,12 @@ export async function routeLlmTool(params: unknown): Promise<object> {
   }
 
   const strategy = (p.strategy as RoutingStrategy | undefined) ?? "balanced";
-  const validStrategies: RoutingStrategy[] = ["fast", "balanced", "quality"];
+  const validStrategies: RoutingStrategy[] = ["fast", "balanced", "quality", "engineering"];
   if (!validStrategies.includes(strategy)) {
     return { error: "INVALID_INPUT", reason: `strategy must be one of: ${validStrategies.join(", ")}` };
   }
 
-  const validProviders: ProviderName[] = ["groq", "inception", "kimi", "minimax", "openai", "pollinations"];
+  const validProviders: ProviderName[] = ["groq", "inception", "kimi", "minimax", "openai", "pollinations", "zhipu"];
   const forceProvider = p.provider as ProviderName | undefined;
   if (forceProvider && !validProviders.includes(forceProvider)) {
     return { error: "INVALID_INPUT", reason: `provider must be one of: ${validProviders.join(", ")}` };

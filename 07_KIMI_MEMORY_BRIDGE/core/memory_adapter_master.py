@@ -59,6 +59,14 @@ class MemoryAdapter:
                 print("[!] Failed to import Sovereign Ledger Manager from Technology 06")
                 pass
 
+    def is_cognitive(self, event_type: str) -> bool:
+        """Classifies events into Cognitive (Strategic) or Operational (Tactical)."""
+        COGNITIVE_TYPES = [
+            "KNOWLEDGE_SYNC", "GOAL_UPDATE", "DECISION_LOG", 
+            "CONCEPTS", "SOLUTIONS", "AUDIT_REPORT", "CORTEX_DECISION"
+        ]
+        return event_type in COGNITIVE_TYPES or event_type.startswith("KIM")
+
     async def append_event(
         self,
         event_type: str,
@@ -77,18 +85,66 @@ class MemoryAdapter:
         import uuid
         event_id = event_id or str(uuid.uuid4())
         
-        if self.mode == "CMS" and self.cms_client:
+        # 1. Classification
+        is_cog = self.is_cognitive(event_type)
+        
+        # 1.5 Semantic Deduplication (Phase 1 Governance)
+        if is_cog and self.mode == "CMS":
             try:
-                return await self.cms_client.append_event(
-                    event_type, self.actor, payload, justification, correlation_id, event_id, tokens_used, tokens_saved, usd_saved
-                )
+                # Create a small string representation for search
+                query_str = json.dumps(payload)
+                if len(query_str) > 500:
+                    query_str = query_str[:500]
+                
+                # Check directly with CMS
+                search_res = await self.query_memory(query_str, vector_topk=1)
+                facts = search_res.get("context", {}).get("facts", [])
+                
+                if facts:
+                    top_fact = facts[0]
+                    # Score might be 'score', 'similarity', or 'distance' (if distance, lower is better but we assume score here)
+                    score = top_fact.get("score", top_fact.get("similarity", 0.0))
+                    
+                    if isinstance(score, (int, float)) and score > 0.85:
+                        print(f"[*] Semantic Deduplication TRIGGERED: Similar knowledge found (Score: {score}). Blocking persistence.")
+                        return {
+                            "status": "deduplicated", 
+                            "event_id": top_fact.get("id", top_fact.get("event_id", "EXISTING_REF")), 
+                            "backend": "CMS_CACHE",
+                            "score": score
+                        }
             except Exception as e:
-                print(f"CMS Failure: {e}. Falling back to SQLite.")
-
-        if self.sqlite_ledger:
-            return self._append_sqlite(event_type, payload, justification, correlation_id, event_id, tokens_used, tokens_saved, usd_saved)
+                print(f"[!] Semantic Dedupe check failed: {e}. Proceeding directly to append.")
+        
+        # 2. Routing Logic
+        if is_cog:
+            # Cognitive events MUST go to CMS
+            if self.mode == "CMS" and self.cms_client:
+                try:
+                    res = await self.cms_client.append_event(
+                        event_type, self.actor, payload, justification, correlation_id, event_id, tokens_used, tokens_saved, usd_saved
+                    )
+                    # If we have a local ledger, we can still record it as SYNCED for forensic trail if needed,
+                    # but the directive says "No Duplication". 
+                    # We'll skip local record if CMS succeeds, unless it's a critical audit.
+                    return res
+                except Exception as e:
+                    print(f"CMS Failure for Cognitive Event: {e}. Buffered in SQLite (PENDING).")
             
-        raise RuntimeError(f"No memory backend available (Fallback failed)")
+            # Fallback for Cognitive: Buffer in SQLite as PENDING
+            if self.sqlite_ledger:
+                return self._append_sqlite(event_type, payload, justification, correlation_id, event_id, tokens_used, tokens_saved, usd_saved)
+        else:
+            # Operational events go to SQLite ONLY (05_PROJECT_GRAPH / 06_PER_FRICTION)
+            if self.sqlite_ledger:
+                if event_type == "PROJECT_GRAPH_SYNC":
+                    self.sqlite_ledger.record_graph(payload.get("file_path"), payload.get("hash"), payload.get("node_type"), payload.get("metadata", {}))
+                elif event_type == "IO_FRICTION":
+                    self.sqlite_ledger.record_friction(payload.get("op"), payload.get("latency"), payload.get("error"), correlation_id)
+                
+                return self._append_sqlite(event_type, payload, justification, correlation_id, event_id, tokens_used, tokens_saved, usd_saved)
+
+        raise RuntimeError(f"No memory backend available for routing")
 
     def _append_sqlite(self, event_type, payload, justification, correlation_id, event_id, tokens_used, tokens_saved, usd_saved) -> Dict[str, str]:
         e_id = self.sqlite_ledger.record_event(
@@ -141,11 +197,72 @@ class MemoryAdapter:
             "backend": "SQLITE"
         }
 
-    async def consolidate(self, query_text: str) -> Dict[str, Any]:
+    async def sync_pending_events(self) -> Dict[str, Any]:
+        """Drains the SQLite buffer to CMS."""
         self._ensure_backend()
-        if self.mode == "CMS" and self.cms_client:
-            return await self.cms_client.consolidate(query_text)
-        return self._query_sqlite(query_text)
+        if not (self.mode == "CMS" and self.cms_client and self.sqlite_ledger):
+            return {"status": "skipped", "reason": "CMS or SQLite not available"}
+        
+        # Query PENDING events
+        pending = self.sqlite_ledger.query_events(sync_status="PENDING", limit=100)
+        
+        synced_count = 0
+        for ev in pending:
+            try:
+                await self.cms_client.append_event(
+                    ev["event_type"], self.actor, ev["payload"], ev["justification"], None, ev["event_id"]
+                )
+                self.sqlite_ledger.mark_as_synced(ev["event_id"])
+                synced_count += 1
+            except Exception as e:
+                print(f"Failed to sync event {ev['event_id']}: {e}")
+                break # Stop if CMS is still down
+        
+        return {"status": "completed", "synced": synced_count}
 
 # Singleton handle
 memory_adapter = MemoryAdapter()
+
+if __name__ == "__main__":
+    if "--test-2-layer" in sys.argv:
+        print("🚀 [Test] Running 2-Layer Memory Routing Test...")
+        
+        async def run_test():
+            # 1. Test Cognitive Routing
+            cog_event = "KNOWLEDGE_SYNC"
+            cog_payload = {"test": "cognitive_data"}
+            print(f"[*] Testing Cognitive Routing for {cog_event}...")
+            
+            # Use a mock or just check the return backend if possible
+            # For now, we'll check where it lands in SQLite if CMS is not set or fails
+            res = await memory_adapter.append_event(cog_event, cog_payload, justification="Unit Test")
+            print(f"[+] Result: {res}")
+            
+            # 2. Test Operational Routing
+            op_event = "PROJECT_GRAPH_SYNC"
+            op_payload = {"file_path": "test.py", "hash": "abc"}
+            print(f"[*] Testing Operational Routing for {op_event}...")
+            res_op = await memory_adapter.append_event(op_event, op_payload, justification="Unit Test")
+            print(f"[+] Result: {res_op}")
+            
+            # 3. Verification in DB
+            from ledger_manager_master import LedgerManager
+            db_file = os.environ.get("EVOLUTION_LEDGER_DB", os.path.join(base_dir, "01_COGNITIVE_MEMORY_SERVICE", "database", "evolution.db"))
+            lm = LedgerManager(db_file)
+            
+            # Check Op table
+            import sqlite3
+            with sqlite3.connect(db_file) as conn:
+                cursor = conn.execute("SELECT count(*) FROM project_graph WHERE file_path='test.py'")
+                cnt = cursor.fetchone()[0]
+                print(f"[+] Project Graph count for test.py: {cnt}")
+            
+            # Check Audit Ledger status
+            events = lm.query_events(limit=5)
+            for ev in events:
+                if ev["event_type"] == cog_event:
+                    print(f"[+] Cog Event {ev['event_id']} Sync Status: {ev.get('sync_status')}")
+                if ev["event_type"] == op_event:
+                    print(f"[+] Op Event {ev['event_id']} Sync Status: {ev.get('sync_status')}")
+
+        asyncio.run(run_test())

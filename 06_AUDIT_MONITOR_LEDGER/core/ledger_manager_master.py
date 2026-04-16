@@ -40,8 +40,17 @@ class LedgerManager:
                 columns = [col[1] for col in cursor.fetchall()]
                 if "tokens_used" not in columns:
                     self._migrate_to_v3(conn)
+                
+                if "sync_status" not in columns:
+                    self._migrate_to_v4(conn)
+                
+                # Ensure operational tables exist
+                self._create_operational_tables(conn)
             else:
                 self._create_schema_latest(conn)
+            
+            # Always refresh triggers to ensure latest security logic
+            self._refresh_triggers(conn)
 
     def _create_schema_latest(self, conn):
         conn.execute("""
@@ -67,13 +76,20 @@ class LedgerManager:
             )
         """)
         
-        # Enforce Append-Only via Triggers
+        conn.commit()
+
+    def _refresh_triggers(self, conn):
+        # Enforce Append-Only via Triggers (Allowing sync_status update)
         conn.execute("DROP TRIGGER IF EXISTS ledger_no_update")
         conn.execute("""
             CREATE TRIGGER ledger_no_update
             BEFORE UPDATE ON audit_ledger
+            FOR EACH ROW
             BEGIN
-                SELECT RAISE(ABORT, 'LEDGER_APPEND_ONLY_VIOLATION: Updates prohibited.');
+                SELECT RAISE(ABORT, 'LEDGER_APPEND_ONLY_VIOLATION: Only sync_status can be updated.')
+                WHERE OLD.event_id != NEW.event_id 
+                   OR OLD.payload_raw != NEW.payload_raw
+                   OR OLD.current_hash != NEW.current_hash;
             END;
         """)
         
@@ -121,15 +137,39 @@ class LedgerManager:
         conn.commit()
         print("[+] Migration completed successfully.", file=sys.stderr)
 
-    def _migrate_to_v3(self, conn):
-        print("[*] Migrating Evolution Ledger to v3 (Token Economy)...", file=sys.stderr)
+    def _migrate_to_v4(self, conn):
+        print("[*] Migrating Evolution Ledger to v4 (2-Layer Sync Status)...", file=sys.stderr)
         try:
-            conn.execute("ALTER TABLE audit_ledger ADD COLUMN tokens_used INTEGER DEFAULT 0")
-            conn.execute("ALTER TABLE audit_ledger ADD COLUMN tokens_saved INTEGER DEFAULT 0")
+            # CMS Sync status: PENDING, SYNCED, LOCAL_ONLY (Operational)
+            conn.execute("ALTER TABLE audit_ledger ADD COLUMN sync_status TEXT DEFAULT 'PENDING'")
             conn.commit()
-            print("[+] Token Economy columns added successfully.", file=sys.stderr)
+            print("[+] Sync Status column added successfully.", file=sys.stderr)
         except sqlite3.OperationalError as e:
-            print(f"[!] Migration to v3 failed/skipped (already exists?): {e}", file=sys.stderr)
+            print(f"[!] Migration to v4 failed: {e}", file=sys.stderr)
+
+    def _create_operational_tables(self, conn):
+        print("[*] Ensuring Operational tables (05_PROJECT_GRAPH, 06_PER_FRICTION) exist...", file=sys.stderr)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS project_graph (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                file_path TEXT UNIQUE,
+                dependency_hash TEXT,
+                last_modified DATETIME,
+                node_type TEXT,
+                metadata TEXT
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS per_friction (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                operation_type TEXT,
+                latency_ms REAL,
+                error_code TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                correlation_id TEXT
+            )
+        """)
+        conn.commit()
 
     def _canonicalize_json(self, data: Dict[str, Any]) -> str:
         return json.dumps(data, sort_keys=True, separators=(',', ':'))
@@ -155,17 +195,43 @@ class LedgerManager:
             # 4. Signature (HMAC)
             sig = hmac.new(self.secret_key.encode("utf-8"), current_hash.encode("utf-8"), hashlib.sha256).hexdigest()
             
+            # 5. Determine initial sync_status
+            # If it's a known operational event, mark as LOCAL_ONLY
+            operational_types = ["PROJECT_GRAPH_SYNC", "IO_FRICTION", "TELEMETRY"]
+            status = "LOCAL_ONLY" if event_type in operational_types else "PENDING"
+
             conn.execute("""
                 INSERT INTO audit_ledger 
-                (event_id, correlation_id, session_id, host_id, process_id, actor_id, event_type, payload_raw, payload_c14n, payload_hash, justification, tokens_used, tokens_saved, usd_saved, prev_hash, current_hash, sig)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (event_id, correlation_id, self.session_id, self.host_id, self.process_id, actor_id, event_type, payload_raw, payload_c14n, payload_hash, justification, tokens_used, tokens_saved, usd_saved, prev_hash, current_hash, sig))
+                (event_id, correlation_id, session_id, host_id, process_id, actor_id, event_type, payload_raw, payload_c14n, payload_hash, justification, tokens_used, tokens_saved, usd_saved, prev_hash, current_hash, sig, sync_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (event_id, correlation_id, self.session_id, self.host_id, self.process_id, actor_id, event_type, payload_raw, payload_c14n, payload_hash, justification, tokens_used, tokens_saved, usd_saved, prev_hash, current_hash, sig, status))
             conn.commit()
             return event_id
 
-    def query_events(self, event_type: Optional[str] = None, query_text: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+    def record_graph(self, file_path: str, dep_hash: str, node_type: str = "FILE", metadata: Dict[str, Any] = {}):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO project_graph (file_path, dependency_hash, last_modified, node_type, metadata)
+                VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?)
+            """, (file_path, dep_hash, node_type, json.dumps(metadata)))
+            conn.commit()
+
+    def record_friction(self, op_type: str, latency: float, error_code: Optional[str] = None, correlation_id: Optional[str] = None):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                INSERT INTO per_friction (operation_type, latency_ms, error_code, correlation_id)
+                VALUES (?, ?, ?, ?)
+            """, (op_type, latency, error_code, correlation_id))
+            conn.commit()
+
+    def mark_as_synced(self, event_id: str):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("UPDATE audit_ledger SET sync_status = 'SYNCED' WHERE event_id = ?", (event_id,))
+            conn.commit()
+
+    def query_events(self, event_type: Optional[str] = None, sync_status: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
         """Busca eventos no Ledger local."""
-        query = "SELECT event_id, event_type, payload_raw, justification, timestamp FROM audit_ledger"
+        query = "SELECT event_id, event_type, payload_raw, justification, timestamp, sync_status FROM audit_ledger"
         params = []
         conditions = []
         
@@ -173,7 +239,9 @@ class LedgerManager:
             conditions.append("event_type = ?")
             params.append(event_type)
         
-        # Omitimos o LIKE e filtramos via Python se necessário
+        if sync_status:
+            conditions.append("sync_status = ?")
+            params.append(sync_status)
         
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
@@ -190,7 +258,8 @@ class LedgerManager:
                     "event_type": row[1],
                     "payload": json.loads(row[2]),
                     "justification": row[3],
-                    "timestamp": row[4]
+                    "timestamp": row[4],
+                    "sync_status": row[5]
                 })
         return events
 

@@ -23,6 +23,15 @@ except ImportError:
 
 from cms_client_master import cms_client
 
+# Sovereign Ledger Orchestration
+tech_06_ledger = os.path.join(base_dir, "06_AUDIT_MONITOR_LEDGER", "core")
+if tech_06_ledger not in sys.path:
+    sys.path.insert(0, tech_06_ledger)
+try:
+    from ledger_manager_master import ledger_manager
+except ImportError:
+    ledger_manager = None
+
 class CircuitBreakerV3:
     """
     Escudo Atômico: Gerenciador de Estados Fail-Closed para o Antigravity.
@@ -58,11 +67,12 @@ class CircuitBreakerV3:
         except Exception as e:
             logger.warning(f"⚠️ [Breaker] Falha ao reportar alerta ao CMS: {e}")
 
-    async def verify_safety(self) -> bool:
+    async def verify_safety(self, event_type: str = "UNKNOWN", correlation_id: Optional[str] = None) -> bool:
         """
-        Verifica se é seguro prosseguir com a chamada LLM.
-        Retorna True se o sistema estiver saudável, False se estiver bloqueado.
+        Verifica se é seguro prosseguir com a chamada LLM ou CMS.
+        V4 Governance Phase 1: Observation Mode (No Blocking).
         """
+        is_cog = event_type in ["KNOWLEDGE_SYNC", "GOAL_UPDATE", "DECISION_LOG"]
         
         # 1. Se estiver OPEN, verifica se já passou o tempo de recuperação
         if self.state == "OPEN":
@@ -70,7 +80,17 @@ class CircuitBreakerV3:
                 self.state = "HALF_OPEN"
                 logger.info("🟡 [Circuit Breaker] Estado: HALF-OPEN. Tentando teste de pulso...")
             else:
-                return False
+                # --- V4 GOVERNANCE PHASE 1 (OBSERVATION MODE) ---
+                if ledger_manager:
+                    if is_cog:
+                        ledger_manager.record_friction("BREAKER_OBSERVE_COG", 0.0, "WOULD_BLOCK_OPEN_CIRCUIT", correlation_id)
+                        logger.warning(f"🛡️ [Governance] Phase 1 Observation: Would have BLOCKED Cognitive event '{event_type}'. Permitting bypass.")
+                    else:
+                        ledger_manager.record_friction("BREAKER_OBSERVE_OP", 0.0, "PERMIT_BYPASS_OPERATIONAL", correlation_id)
+                        logger.info(f"⚙️ [Governance] Phase 1 Observation: Permitted Operational event '{event_type}'.")
+                
+                # Em Fase 1: SEMPRE RETORNAR TRUE (Sem bloqueio real)
+                return True
 
         # 2. Executa Smart Ping de saúde
         try:
@@ -101,7 +121,8 @@ class CircuitBreakerV3:
             if self.failure_count >= self.failure_threshold:
                 self._open_breaker(reason)
             
-            return False
+            # Em Fase 1, não bloqueamos. Retornamos True para deixar a falha subir naturalmente
+            return True
 
 # Global Instance
 circuit_breaker = CircuitBreakerV3()

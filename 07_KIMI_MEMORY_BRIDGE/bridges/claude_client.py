@@ -35,19 +35,82 @@ class ClaudeClient:
         if not self.api_key:
              return f"ERROR: ANTHROPIC_API_KEY missing. Claude cannot deliberate."
 
+        # Session Initialization Protocol (Governor V4 Phase 1)
+        # Fetch active context before the decision
+        try:
+            import sys
+            import os
+            base_dir = r"c:\Users\RobsonSilva-AfixGraf\Habilidade_de_agente"
+            tech_01_path = os.path.join(base_dir, "01_COGNITIVE_MEMORY_SERVICE", "client")
+            if tech_01_path not in sys.path:
+                sys.path.insert(0, tech_01_path)
+                
+            from cms_client_master import cms_client
+            # Fetch active context
+            context_res = await cms_client.query_memory("contexto ativo do projeto", vector_topk=3)
+            facts = context_res.get("context", {}).get("facts", [])
+            
+            if facts:
+                context_str = "\n".join([f"- {f.get('content', str(f))}" for f in facts])
+                system_msg += f"\n\n[SOVEREIGN CONTEXT INJECTED]:\n{context_str}"
+        except Exception as e:
+            logger.warning(f"Failed to fetch initial context for Claude session: {e}")
+
         headers = {
             "x-api-key": self.api_key,
             "anthropic-version": "2023-06-01",
             "content-type": "application/json"
         }
         
+        # Strict Tool Interface Contracts (Governor V4)
+        SOVEREIGN_TOOLS = [
+            {
+                "name": "query_memory",
+                "description": "Searches the Cognitive Memory Service (CMS). OUTPUT: Returns a JSON object with a 'context' key containing 'facts', 'artifacts', and 'links'. ERROR: Returns {'error': '...'} if unreachable. Do NOT infer results or hallucinate context.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "The exact search term to query."
+                        }
+                    },
+                    "required": ["query"]
+                }
+            },
+            {
+                "name": "store_memory",
+                "description": "Stores a new cognitive event. OUTPUT: Returns {'status': 'recorded', 'event_id': '...'} or {'status': 'deduplicated'} on success. ERROR: Returns {'error': '...'} on failure. Do NOT infer success.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "event_type": {
+                            "type": "string",
+                            "enum": ["KNOWLEDGE_SYNC", "GOAL_UPDATE", "DECISION_LOG"],
+                            "description": "Classification of the event."
+                        },
+                        "payload": {
+                            "type": "object",
+                            "description": "The actual JSON knowledge payload."
+                        },
+                        "justification": {
+                            "type": "string",
+                            "description": "Explicit reason why this must be stored."
+                        }
+                    },
+                    "required": ["event_type", "payload", "justification"]
+                }
+            }
+        ]
+
         payload = {
             "model": model,
             "max_tokens": 4096,
             "system": system_msg,
             "messages": [
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            "tools": SOVEREIGN_TOOLS
         }
         
         async with httpx.AsyncClient(timeout=90.0) as client:

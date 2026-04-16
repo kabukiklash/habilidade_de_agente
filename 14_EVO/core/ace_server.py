@@ -15,6 +15,16 @@ import time
 import requests
 from contextlib import asynccontextmanager
 
+# ============================================================
+# SOVEREIGN INTEGRATION (TEC 03, 14, 01)
+# ============================================================
+base_dir = "c:/Users/RobsonSilva-AfixGraf/Habilidade_de_agente"
+sys.path.insert(0, os.path.join(base_dir, "03_CIRCUIT_BREAKER_V3", "core"))
+
+from circuit_breaker_master import circuit_breaker
+from loop_guard_master import loop_guard
+from ace_memory_gateway import MemoryGateway
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -69,6 +79,11 @@ class NomadConfig:
         """Hot-reload: Updates RAM variables AND persists to .env file."""
         cls._cms_base_url = remote_url.rstrip("/")
         cls._api_key = api_key
+        
+        # Hot-Reload Gateway
+        global gateway
+        gateway.cms_base_url = cls._cms_base_url
+        gateway.api_key = cls._api_key
 
         # Also update os.environ for any child processes
         os.environ["ACE_REMOTE_URL"] = cls._cms_base_url
@@ -116,6 +131,10 @@ class NomadConfig:
     @classmethod
     def is_remote(cls):
         return "localhost" not in cls._cms_base_url and "127.0.0.1" not in cls._cms_base_url
+
+
+# Gateway Instance (Global) - Initialized after NomadConfig
+gateway = MemoryGateway(NomadConfig._cms_base_url, NomadConfig._api_key)
 
 
 # ============================================================
@@ -238,9 +257,17 @@ class EconomyTracker:
             }
             endpoint = NomadConfig.get_events_endpoint()
             headers = NomadConfig.get_auth_headers()
-            response = requests.post(endpoint, json=payload, headers=headers, timeout=2)
-            if response.status_code not in (200, 201):
-                raise Exception(f"HTTP {response.status_code}")
+            
+            # GOVERNED WRITE via Gateway
+            success, msg = gateway.append_event(
+                event_type="cognitive.context.injected",
+                actor="ACE_Daemon",
+                payload={"target": file_name},
+                justification="Injecao de regras locais no Cursor para evitar Retrieval Cloud"
+            )
+            
+            if not success:
+                raise Exception(msg)
         except Exception as e:
             # EVO-03 Outbox: Queue failed deliveries for later retry
             OutboxQueue.enqueue(NomadConfig.get_events_endpoint(), payload, NomadConfig.get_auth_headers())
@@ -267,21 +294,15 @@ class MemoryExtractor:
                 return False, "O arquivo de aprendizados está vazio."
                 
             # Envia o "Nó Sináptico" da lição de casa para a Nuvem/Base Central do CMS
-            payload = {
-                "name": f"Aprendizado Dinâmico Cursor ({time.strftime('%Y-%m-%d %H:%M')})",
-                "description": content,
-                "node_type": "LESSON_LEARNED",
-                "properties": {"source": "ACE_Extractor", "status": "raw_ingestion"}
-            }
-            
-            response = requests.post(
-                NomadConfig.get_concepts_endpoint(),
-                json=payload,
-                headers=NomadConfig.get_auth_headers(),
-                timeout=3
+            # GOVERNED WRITE via Gateway
+            success, msg = gateway.append_concept(
+                name=f"Aprendizado Dinâmico Cursor ({time.strftime('%Y-%m-%d %H:%M')})",
+                description=content,
+                node_type="LESSON_LEARNED",
+                properties={"source": "ACE_Extractor", "status": "raw_ingestion"}
             )
             
-            if response.status_code in (200, 201):
+            if success:
                 # Tenta limpar o arquivo local, mas trata erro se a IDE estiver travando o arquivo no Windows
                 try:
                     with open(raw_learning_path, "w", encoding="utf-8") as f:
@@ -342,23 +363,39 @@ class ACEEventHandler(FileSystemEventHandler):
         global status
         if status == "running" and not event.is_directory:
             path = event.src_path
-            # Ignora pastas de cache, node_modules, proprios logs e ARQUIVOS GERADOS PELO PROPRIO ACE
-            if ".cursor" not in path and ".git" not in path and "node_modules" not in path and not path.endswith(".clinerules") and not path.endswith("antigravity_core.mdc"):
-                msg = f"📝 Detectou mudança: {os.path.basename(path)}"
-                asyncio.run(broadcast(msg))
+            
+            # 1. Loop Guard: Watcher/Source Filter
+            if not loop_guard.should_process_event(path, origin="system"):
+                return
+
+            # 2. Circuit Breaker: Mandatory Safety Check
+            # Rodar em loop síncrono para o Watchdog, mas verify_safety é async.
+            try:
+                loop = asyncio.new_event_loop()
+                is_safe = loop.run_until_complete(circuit_breaker.verify_safety())
+                loop.close()
+                if not is_safe:
+                    print(f"🛑 [ACE] Operação bloqueada: Circuit Breaker está ABERTO.")
+                    return
+            except Exception as e:
+                print(f"⚠️ [ACE] Erro ao consultar Breaker: {e}")
+                return
+
+            msg = f"📝 Detectou mudança: {os.path.basename(path)}"
+            asyncio.run(broadcast(msg))
+            
+            # FASE 2 e 3: A Ponte do CMS injetando o arquivo com regras no projeto
+            success = CMSKnowledgeBridge.sync_rules(target_dir)
+            
+            if success:
+                # Registra a economia no motor e envia para o Painel e Banco CMS
+                saved_now, was_registered = EconomyTracker.register_action(os.path.basename(path))
                 
-                # FASE 2 e 3: A Ponte do CMS injetando o arquivo com regras no projeto
-                success = CMSKnowledgeBridge.sync_rules(target_dir)
-                
-                if success:
-                    # Registra a economia no motor e envia para o Painel e Banco CMS
-                    saved_now, was_registered = EconomyTracker.register_action(os.path.basename(path))
-                    
-                    if was_registered:
-                        # Exemplo visual no dashboard de que ele trabalhou e entregou os arquivos
-                        asyncio.run(broadcast(f"🧠 Regras Injetadas. Economia na ação: +{EconomyTracker.tokens_saved_per_action} Tokens | Total: {saved_now}"))
-                    else:
-                        asyncio.run(broadcast(f"⚡ Contexto atualizado silenciosamente (em cooldown)."))
+                if was_registered:
+                    # Exemplo visual no dashboard de que ele trabalhou e entregou os arquivos
+                    asyncio.run(broadcast(f"🧠 Regras Injetadas. Economia na ação: +{EconomyTracker.tokens_saved_per_action} Tokens | Total: {saved_now}"))
+                else:
+                    asyncio.run(broadcast(f"⚡ Contexto atualizado silenciosamente (em cooldown)."))
 
 observer = Observer()
 event_handler = ACEEventHandler()

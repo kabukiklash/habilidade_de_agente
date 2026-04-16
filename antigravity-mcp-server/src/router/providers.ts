@@ -10,8 +10,8 @@
  *   quality   → Inception (Mercury, high capability)
  */
 
-export type ProviderName = "groq" | "inception" | "kimi" | "minimax" | "openai" | "pollinations";
-export type RoutingStrategy = "fast" | "balanced" | "quality";
+export type ProviderName = "groq" | "inception" | "kimi" | "minimax" | "openai" | "pollinations" | "zhipu";
+export type RoutingStrategy = "fast" | "balanced" | "quality" | "engineering";
 
 export interface ProviderConfig {
   name: ProviderName;
@@ -71,15 +71,24 @@ export const PROVIDERS: Record<ProviderName, ProviderConfig> = {
     maxTokens: 2048,
     timeoutMs: 30_000,
   },
+  zhipu: {
+    name: "zhipu",
+    baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+    apiKeyEnv: "ZHIPU_API_KEY",
+    defaultModel: "glm-4.7-flash",  // gratuito; glm-4.7 / glm-5-turbo / glm-5.1 requerem saldo
+    maxTokens: 4096,
+    timeoutMs: 45_000,
+  },
 };
 
 // Strategy → ordered list of providers (first = primary, rest = fallbacks)
-// Providers ativos confirmados: OpenAI, Inception, Pollinations
+// Providers ativos confirmados: OpenAI, Inception, Pollinations, Zhipu (Z.ai)
 // Providers instáveis/inativos ficam no fim: Kimi (fetch failed intermitente), MiniMax (chave inválida), Groq (sem chave)
 export const STRATEGY_MAP: Record<RoutingStrategy, ProviderName[]> = {
-  fast:     ["pollinations", "openai",    "inception", "groq",    "kimi",   "minimax"],
-  balanced: ["openai",       "inception", "pollinations", "kimi", "minimax", "groq"],
-  quality:  ["inception",    "openai",    "pollinations", "kimi", "minimax", "groq"],
+  fast:        ["pollinations", "openai",    "zhipu",     "inception", "groq",    "kimi",   "minimax"],
+  balanced:    ["openai",       "inception", "pollinations", "zhipu",  "kimi",    "minimax", "groq"],
+  quality:     ["inception",    "openai",    "zhipu",     "pollinations", "kimi", "minimax", "groq"],
+  engineering: ["zhipu",        "inception", "openai",    "pollinations", "kimi", "minimax", "groq"],
 };
 
 export function resolveProviderChain(

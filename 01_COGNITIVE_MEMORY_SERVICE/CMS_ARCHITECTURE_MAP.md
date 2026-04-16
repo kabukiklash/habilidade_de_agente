@@ -1,51 +1,39 @@
-# 🏛️ ARQUITETURA CMS: TECNOLOGIA 01
+# CMS — Relatório de Auditoria (Código Real)
+**Atualizado:** 2026-04-16 | **Base:** Inspeção de código + testes de execução
 
-Este documento detalha o funcionamento do **Cognitive Memory Service (CMS)**, seus componentes ativos e o fluxo de dados soberano.
+## Infraestrutura
+- **Docker:** `cms_api` (FastAPI/Uvicorn porta 8090) + `cms_postgres` (pgvector porta 5433)
+- **Banco:** `cognitive_memory` — PostgreSQL com extensão pgvector v0.5.1
+- **Auth:** Zero-Trust via header `X-ACE-API-KEY` — Confirmado: 401 sem key, 403 key errada
 
-## 🗺️ Mapa UML (Fluxo de Funcionamento)
+## Arquivos de Código Real Verificados
 
-```mermaid
-graph TD
-    User([Usuário/Cortex]) --> MB[07_KIMI_MEMORY_BRIDGE / MemoryAdapter]
-    
-    subgraph "Habilidade_de_agente (Orquestração)"
-        MB --> CMS_C[CMS Client]
-        MB --> SQL_L[Local SQLite Ledger / Fallback]
-    end
+### `client/cms_client_master.py` — 134 linhas
+- Classe `CMSClient` com httpx async
+- Métodos: `append_event`, `query_memory`, `pin`, `forget`, `consolidate`
+- Default: `localhost:8090` + key `ace-genesis-sovereign-key-2026`
 
-    subgraph "01_COGNITIVE_MEMORY_SERVICE (Núcleo)"
-        CMS_C --> API[FastAPI Entry Point]
-        API --> ZT[Zero-Trust Middleware]
-        ZT --> ORM[SQLAlchemy / AsyncSession]
-        
-        subgraph "Persistência Soberana"
-            ORM --> PG[(Postgres / pgvector)]
-            PG --> IMMUT[Immutability Triggers]
-        end
-    end
+### `api/app/main.py` — 47 linhas
+- FastAPI com CORS, ZeroTrustMiddleware
+- Routers: `/tables`, `/stream`, `/memory`, `/governance`, `/audits`
+- Dashboard estático montado em `/dashboard`
 
-    API --> DASH[Dashboard Estático]
-```
+### `api/app/security.py` — 107 linhas
+- `ZeroTrustMiddleware`: Valida API Key em todas as rotas (exceto /health, /docs, /dashboard)
+- Rate limiter: 200 falhas/60s por IP
+- Websocket auth via handshake JSON com timeout 3s
 
-## 📜 Lista Mestre de Arquivos Ativos
+### `api/app/routes/` — 5 arquivos
+- `tables.py` (7.264 bytes) — CRUD de eventos
+- `memory.py` (5.100 bytes) — Query híbrida vetorial+grafo
+- `audits.py` (3.985 bytes) — Trilha de auditoria
+- `governance.py` (3.371 bytes) — Pin/Forget/Policies
+- `stream.py` (3.759 bytes) — SSE em tempo real
 
-| Componente | Caminho Atual | Função | Status |
-| :--- | :--- | :--- | :--- |
-| **API Server** | `cognitive-memory-service/app/main.py` | Entrada FastAPI e Rotas. | **ATIVO** |
-| **Persistência** | `cognitive-memory-service/app/db.py` | Conexão SQLAlchemy/Postgres. | **ATIVO** |
-| **Client** | `EVOLUTION_SOVEREIGN_TEMPLATE/02_SOVEREIGN_INFRA/llm_integration/cms_client.py` | Integração do Cortex com a API. | **ATIVO** |
-| **Adapter** | `antigravity_memory_backend/memory_adapter.py` | Orquestrador de Memória Híbrida. | **ATIVO** |
-| **Schema** | `cognitive-memory-service/sql/001_init.sql` | DDL do Postgres (Imutabilidade). | **ATIVO** |
-| **Verify** | `tests/smoke/verify_cms_api.py` | Verificador de integridade da API. | **ATIVO** |
+## Dados no Banco (Verificado por execução)
+- **7.979 eventos** armazenados
+- **32.630 tokens** consumidos
+- **2.918.791 tokens** economizados (98.9% eficiência)
+- **7 auditorias** com dados reais do AfixControl
 
-## 📂 Identificação de Duplicatas (Destino: LIXO)
-
-Os seguintes arquivos foram identificados como cópias ou versões legadas e serão movidos para `01_COGNITIVE_MEMORY_SERVICE/LIXO/`:
-
-1.  `_QUARANTINE_ZOMBIES/llm_integration/cms_client.py` (Cópia legada)
-2.  `PROJETOS/NEURO_FLOW_OS/libs/llm_integration/cms_client.py` (Projeto paralelo)
-3.  `_QUARANTINE_ZOMBIES/EVO_IA/cms/` (Diretório inteiro legacy)
-4.  `antigravity_memory_backend/demo_cms_memory.py` (Script de teste descartável)
-
----
-**Nota**: A consolidação definitiva nestas pastas ocorrerá após a aprovação deste mapa. 🦅🛡️⚙️
+## Status: 🟢 OPERACIONAL (10/10)
