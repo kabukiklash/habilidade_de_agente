@@ -43,3 +43,10 @@ WORKSPACE/PROJETOS/AfixcontrolLaravel/
 .claude/
 
 Habilidade_de_agente.rar
+
+# Arquivos de log e telemetria
+*.log
+logs/
+**/logs/
+*.sqlite3
+*.db
