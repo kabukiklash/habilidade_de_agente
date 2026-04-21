@@ -8,6 +8,12 @@
 python C:/Users/RobsonSilva-AfixGraf/claude-cognitive-kit/claude_kit_loader.py "C:/Users/RobsonSilva-AfixGraf/Habilidade_de_agente"
 ```
 
+### Palavra-Chave de Despertar: `ANTIGRAVITY_WAKE`
+Ao receber este comando, o agente deve:
+1. Validar se o CMS está online em `localhost:8090`.
+2. Ler os resultados de `antigravity_diagnostic.py`.
+3. Assumir que a infraestrutura está ativa e pronta para comandos de alto nível.
+
 Isso carrega:
 - Memórias persistidas do projeto
 - Decisões anteriores aprovadas e rejeitadas (não repetir as rejeitadas)
