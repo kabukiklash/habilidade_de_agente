@@ -14,7 +14,7 @@ tech_paths = [
     os.path.join(base_dir, "04_KNOWLEDGE_GRAPH"),
     os.path.join(base_dir, "05_VIBECODE_G7"),
     os.path.join(base_dir, "06_AUDIT_MONITOR_LEDGER"),
-    os.path.join(base_dir, "07_KIMI_MEMORY_BRIDGE", "adapter"),
+    os.path.join(base_dir, "07_KIMI_MEMORY_BRIDGE", "core"),
     os.path.join(base_dir, "07_KIMI_MEMORY_BRIDGE", "bridges"),
     os.path.join(base_dir, "02_COGNITIVE_CORTEX", "core")
 ]

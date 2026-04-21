@@ -23,8 +23,16 @@ class OpenAIClient:
         self.base_url = base_url or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
         
         if not self.api_key:
-            from .logger import logger
-            logger.warning("⚠️ OPENAI_API_KEY não configurada. Chamadas ao OpenAI falharão, mas a infraestrutura básica foi carregada.")
+            # Fallback Logger logic for standalone execution
+            try:
+                from .logger import logger
+            except ImportError:
+                class DummyLogger:
+                    def info(self, m): print(f"[INFO] {m}")
+                    def error(self, m): print(f"[ERROR] {m}")
+                    def warning(self, m): print(f"[WARN] {m}")
+                logger = DummyLogger()
+            logger.warning("[WARN] OPENAI_API_KEY nao configurada. Chamadas ao OpenAI falharao, mas a infraestrutura basica foi carregada.")
 
     async def chat_thinking(self, prompt: str, system_msg: str = "You are a helpful assistant.", model: str = "o3-mini", return_usage: bool = False) -> str:
         """

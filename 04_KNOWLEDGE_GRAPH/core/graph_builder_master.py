@@ -7,8 +7,10 @@ from typing import List, Dict, Any, Set
 # Sovereign Path Orchestration
 base_dir = "c:/Users/RobsonSilva-AfixGraf/Habilidade_de_agente"
 tech_01_client = os.path.join(base_dir, "01_COGNITIVE_MEMORY_SERVICE", "client")
-tech_07_adapter = os.path.join(base_dir, "07_KIMI_MEMORY_BRIDGE", "adapter")
-for p in [tech_01_client, tech_07_adapter]:
+tech_07_core = os.path.join(base_dir, "07_KIMI_MEMORY_BRIDGE", "core")
+tech_02_cortex = os.path.join(base_dir, "02_COGNITIVE_CORTEX", "core")
+
+for p in [tech_01_client, tech_07_core, tech_02_cortex]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
@@ -33,28 +35,65 @@ class GraphBuilder:
     def __init__(self):
         # Stopwords técnicas para filtrar conceitos irrelevantes
         self.technical_stopwords = {"the", "and", "this", "that", "with", "from", "into", "using"}
-        # Padrões para identificar entidades técnicas
+        # Padrões para identificar entidades técnicas (Fallback)
         self.patterns = {
             "function": r"(?:def\s+|função\s+)([a-zA-Z_][a-zA-Z0-9_]*)",
             "class": r"(?:class\s+|classe\s+)([a-zA-Z_][a-zA-Z0-9_]*)",
             "file": r"([a-zA-Z0-9_/.-]+\.(?:py|js|ts|css|html|md))",
             "component": r"@([a-zA-Z_][a-zA-Z0-9_]*)",
-            "concept": r"\[\[(.*?)\]\]"  # Formato Wiki-style: [[Conceito]]
+            "concept": r"\[\[(.*?)\]\]"
         }
+        
+        # Integração com o Cérebro Central
+        from cognitive_cortex_master import cognitive_cortex
+        self.cortex = cognitive_cortex
 
-    async def process_solution(self, text: str, correlation_id: str) -> Dict[str, Any]:
+    async def process_solution(self, text: str, correlation_id: str, mode: str = "semantic") -> Dict[str, Any]:
         """
         Analisa o texto da solução e extrai o grafo de conhecimento.
         Persiste no CMS.
         """
-        nodes = self._extract_nodes(text)
-        links = self._generate_links(nodes)
+        if mode == "semantic":
+            # Extração avançada via LLM (Semana 2 Roadmap)
+            nodes, links = await self._extract_semantic_graph(text, correlation_id)
+        else:
+            # Fallback para Regex (Legado)
+            nodes = self._extract_nodes(text)
+            links = self._generate_links(nodes)
         
         if nodes or links:
-            logger.info(f"🕸️ [GraphBuilder] Extraídos {len(nodes)} nós e {len(links)} links.")
+            logger.info(f"🕸️ [GraphBuilder] Modo: {mode}. Extraídos {len(nodes)} nós e {len(links)} links.")
             await self._persist_to_cms(nodes, links, correlation_id)
         
-        return {"nodes_count": len(nodes), "links_count": len(links)}
+        return {"nodes_count": len(nodes), "links_count": len(links), "mode": mode}
+
+    async def _extract_semantic_graph(self, text: str, correlation_id: str) -> tuple:
+        """Usa o Cognitive Cortex para extrair triplas semânticas (Entidade -> Relação -> Entidade)."""
+        prompt = f"""
+        Extraia entidades técnicas e suas relações do texto abaixo. 
+        Retorne APENAS um objeto JSON válido no formato:
+        {{
+            "nodes": [ {{"name": "nome", "type": "function|class|module|db|env"}} ],
+            "links": [ {{"source": "nome_origem", "target": "nome_destino", "type": "depends_on|calls|modifies|reads"}} ]
+        }}
+        
+        TEXTO: {text}
+        """
+        try:
+            # Chama o Cortex (usando o provedor padrão configurado)
+            response_text = await self.cortex.solve_task(prompt, intent_id=correlation_id)
+            
+            # Tenta limpar e parsear o JSON retornado pelo LLM
+            start_idx = response_text.find("{")
+            end_idx = response_text.rfind("}") + 1
+            if start_idx != -1 and end_idx != -1:
+                data = json.loads(response_text[start_idx:end_idx])
+                return data.get("nodes", []), data.get("links", [])
+            
+            return [], []
+        except Exception as e:
+            logger.error(f"❌ [GraphBuilder] Erro na extração semântica: {e}")
+            return [], []
 
     def _extract_nodes(self, text: str) -> List[Dict[str, str]]:
         nodes = []

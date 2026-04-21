@@ -30,7 +30,7 @@ class KimiClient:
                     def error(self, m): print(f"[ERROR] {m}")
                     def warning(self, m): print(f"[WARN] {m}")
                 logger = DummyLogger()
-            logger.warning("⚠️ MOONSHOT_API_KEY não configurada. Chamadas ao Kimi falharão, mas a infraestrutura básica foi carregada.")
+            logger.warning("[WARN] MOONSHOT_API_KEY nao configurada. Chamadas ao Kimi falharao, mas a infraestrutura basica foi carregada.")
 
     async def _request(self, method: str, endpoint: str, json_data: Optional[Dict] = None) -> Dict[str, Any]:
         """Generic requester for Moonshot API."""

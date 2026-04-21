@@ -31,11 +31,41 @@ class FormalVerifier:
             if re.search(pattern, code, re.IGNORECASE):
                 violations.append(axiom_name)
         
+        # Gera sugestões de correção (Enforcement Mode Phase 2)
+        suggestions = self.get_mitigation_suggestions(violations)
+        
         return {
             "status": "VALID" if not violations else "REJECTED",
             "violations": violations,
+            "suggestions": suggestions,
             "timestamp": datetime.utcnow().isoformat() + "Z"
         }
+
+    def get_mitigation_suggestions(self, violations: list) -> Dict[str, str]:
+        """Retorna trechos de código seguros para substituir violações."""
+        mitigations = {
+            "NO_UNAUTHORIZED_IO": "# [FIX] Substituído por log de segurança ou arquivamento controlado via Módulo 01.",
+            "NO_CREDENTIAL_LEAK": "ACE_SECRET_SENSITIVE_REDACTED = os.getenv('SENSITIVE_KEY')",
+            "NO_EXTERNAL_PHONING": "# [FIX] Redirecionado para Proxy Local (localhost:8090/proxy)."
+        }
+        return {v: mitigations[v] for v in violations if v in mitigations}
+
+    def apply_sovereign_healing(self, code: str) -> str:
+        """Aplica correções automáticas para curar o código de violações de soberania."""
+        import re
+        healed_code = code
+        
+        # Dicionário de Regex para substituição direta
+        healing_patterns = {
+            r"os\.remove\(.*?\)|shutil\.rmtree\(.*?\)": "# [Sovereign Healing] Deleção proibida pela ISO-Antigravity.",
+            r"subprocess\.run\(.*?\)": "# [Sovereign Healing] Subprocesso bloqueado via Circuit Breaker.",
+            r"(['\"][a-zA-Z0-9_\-\.]{15,}['\"])": "'REDACTED_BY_SOVEREIGN_AXIOM'" # Para leaks
+        }
+
+        for pattern, replacement in healing_patterns.items():
+            healed_code = re.sub(pattern, replacement, healed_code)
+
+        return healed_code
 
     def generate_state_proof(self) -> Dict[str, Any]:
         """

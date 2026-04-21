@@ -7,9 +7,9 @@ from typing import Dict, Any, List, Optional
 
 # Sovereign Path Orchestration
 base_dir = "c:/Users/RobsonSilva-AfixGraf/Habilidade_de_agente"
-tech_07_adapter = os.path.join(base_dir, "07_KIMI_MEMORY_BRIDGE", "adapter")
-if tech_07_adapter not in sys.path:
-    sys.path.insert(0, tech_07_adapter)
+tech_07_core = os.path.join(base_dir, "07_KIMI_MEMORY_BRIDGE", "core")
+if tech_07_core not in sys.path:
+    sys.path.insert(0, tech_07_core)
 
 from memory_adapter_master import memory_adapter
 

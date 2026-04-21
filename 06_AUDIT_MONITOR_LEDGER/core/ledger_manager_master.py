@@ -35,13 +35,15 @@ class LedgerManager:
                 if "payload_c14n" not in columns:
                     self._migrate_to_v2(conn)
                 
-                # Check for v3 (Token Economy) columns
+                # Robust Column Check & Migration (Token Economy & Sync)
                 cursor = conn.execute("PRAGMA table_info(audit_ledger)")
-                columns = [col[1] for col in cursor.fetchall()]
-                if "tokens_used" not in columns:
-                    self._migrate_to_v3(conn)
+                current_columns = [col[1] for col in cursor.fetchall()]
                 
-                if "sync_status" not in columns:
+                missing_v3 = [c for c in ["tokens_used", "tokens_saved", "usd_saved"] if c not in current_columns]
+                if missing_v3:
+                    self._migrate_to_v3(conn, missing_v3)
+                
+                if "sync_status" not in current_columns:
                     self._migrate_to_v4(conn)
                 
                 # Ensure operational tables exist
@@ -86,10 +88,12 @@ class LedgerManager:
             BEFORE UPDATE ON audit_ledger
             FOR EACH ROW
             BEGIN
-                SELECT RAISE(ABORT, 'LEDGER_APPEND_ONLY_VIOLATION: Only sync_status can be updated.')
+                SELECT RAISE(ABORT, 'LEDGER_APPEND_ONLY_VIOLATION: Immutable columns cannot be modified.')
                 WHERE OLD.event_id != NEW.event_id 
                    OR OLD.payload_raw != NEW.payload_raw
-                   OR OLD.current_hash != NEW.current_hash;
+                   OR OLD.current_hash != NEW.current_hash
+                   OR OLD.actor_id != NEW.actor_id
+                   OR OLD.event_type != NEW.event_type;
             END;
         """)
         
@@ -136,6 +140,17 @@ class LedgerManager:
         conn.execute("DROP TABLE audit_ledger_old")
         conn.commit()
         print("[+] Migration completed successfully.", file=sys.stderr)
+
+    def _migrate_to_v3(self, conn, missing_columns: List[str]):
+        print(f"[*] Migrating Evolution Ledger to v3. Missing columns: {missing_columns}", file=sys.stderr)
+        for col in missing_columns:
+            try:
+                type_map = {"tokens_used": "INTEGER DEFAULT 0", "tokens_saved": "INTEGER DEFAULT 0", "usd_saved": "REAL DEFAULT 0.0"}
+                conn.execute(f"ALTER TABLE audit_ledger ADD COLUMN {col} {type_map.get(col, 'TEXT')}")
+                print(f"[+] Column {col} added successfully.", file=sys.stderr)
+            except sqlite3.OperationalError as e:
+                print(f"[!] Failed to add {col}: {e}", file=sys.stderr)
+        conn.commit()
 
     def _migrate_to_v4(self, conn):
         print("[*] Migrating Evolution Ledger to v4 (2-Layer Sync Status)...", file=sys.stderr)

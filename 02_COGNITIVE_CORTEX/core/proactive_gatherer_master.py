@@ -2,7 +2,19 @@ import os
 import subprocess
 import json
 import logging
+import sys
 from typing import Dict, Any, List
+
+# Sovereign Path Orchestration
+base_dir = "c:/Users/RobsonSilva-AfixGraf/Habilidade_de_agente"
+tech_06_core = os.path.join(base_dir, "06_AUDIT_MONITOR_LEDGER", "core")
+if tech_06_core not in sys.path:
+    sys.path.insert(0, tech_06_core)
+
+try:
+    from ledger_manager_master import ledger_manager
+except ImportError:
+    ledger_manager = None
 
 logger = logging.getLogger("EvidenceGatherer")
 
@@ -46,10 +58,16 @@ class EvidenceGatherer:
 
     def gather_all(self, target_files: List[str]) -> Dict[str, Any]:
         """Consolidates all evidence into a Context Pack."""
+        ledger_info = ledger_manager.verify_integrity() if ledger_manager else {"status": "MOCK_MODE"}
+        
         return {
             "files": self.gather_file_context(target_files),
             "runtime": self.gather_runtime_info(),
-            "ledger_status": "INTEGRITY_VERIFIED" # Mocked for the standalone repo
+            "ledger_status": ledger_info.get("status", "UNKNOWN"),
+            "ledger_metrics": {
+                "total_events": ledger_info.get("total_events", 0),
+                "violations": len(ledger_info.get("violations", []))
+            }
         }
 
 # Global instance

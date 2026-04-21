@@ -51,7 +51,7 @@ class CircuitBreakerV3:
         if self.state != "OPEN":
             self.state = "OPEN"
             self.last_failure_time = time.time()
-            logger.error(f"⛔ [Circuit Breaker] ESCUDO ATIVADO! Estado: OPEN. Motivo: {reason}")
+            logger.error(f"[Circuit Breaker] ESCUDO ATIVADO! Estado: OPEN. Motivo: {reason}")
             # Hook para o Dashboard via CMS
             asyncio.create_task(self._report_to_cms(reason))
 
@@ -65,12 +65,12 @@ class CircuitBreakerV3:
                 justification="Ativação automática do Circuit Breaker V3 devido a falha de infraestrutura."
             )
         except Exception as e:
-            logger.warning(f"⚠️ [Breaker] Falha ao reportar alerta ao CMS: {e}")
+            logger.warning(f"[Breaker] Falha ao reportar alerta ao CMS: {e}")
 
     async def verify_safety(self, event_type: str = "UNKNOWN", correlation_id: Optional[str] = None) -> bool:
         """
         Verifica se é seguro prosseguir com a chamada LLM ou CMS.
-        V4 Governance Phase 1: Observation Mode (No Blocking).
+        V4 Governance Phase 2: Enforcement Mode (Fail-Closed).
         """
         is_cog = event_type in ["KNOWLEDGE_SYNC", "GOAL_UPDATE", "DECISION_LOG"]
         
@@ -78,18 +78,19 @@ class CircuitBreakerV3:
         if self.state == "OPEN":
             if time.time() - self.last_failure_time > self.recovery_timeout:
                 self.state = "HALF_OPEN"
-                logger.info("🟡 [Circuit Breaker] Estado: HALF-OPEN. Tentando teste de pulso...")
+                logger.info("[Circuit Breaker] Estado: HALF-OPEN. Tentando teste de pulso...")
             else:
-                # --- V4 GOVERNANCE PHASE 1 (OBSERVATION MODE) ---
+                # --- V4 GOVERNANCE PHASE 2 (ENFORCEMENT MODE) ---
                 if ledger_manager:
                     if is_cog:
-                        ledger_manager.record_friction("BREAKER_OBSERVE_COG", 0.0, "WOULD_BLOCK_OPEN_CIRCUIT", correlation_id)
-                        logger.warning(f"🛡️ [Governance] Phase 1 Observation: Would have BLOCKED Cognitive event '{event_type}'. Permitting bypass.")
+                        ledger_manager.record_friction("BREAKER_BLOCK_COG", 0.0, "FAIL_CLOSED_ACTIVE", correlation_id)
+                        logger.error(f"[Governance] Phase 2 Enforcement: BLOCKED Cognitive event '{event_type}' due to open circuit.")
+                        return False # BLOQUEIO REAL
                     else:
-                        ledger_manager.record_friction("BREAKER_OBSERVE_OP", 0.0, "PERMIT_BYPASS_OPERATIONAL", correlation_id)
-                        logger.info(f"⚙️ [Governance] Phase 1 Observation: Permitted Operational event '{event_type}'.")
+                        ledger_manager.record_friction("BREAKER_PASS_OP", 0.0, "PERMIT_OPERATIONAL", correlation_id)
+                        logger.info(f"[Governance] Phase 2: Permitting Operational event '{event_type}' bypass.")
                 
-                # Em Fase 1: SEMPRE RETORNAR TRUE (Sem bloqueio real)
+                # Para eventos não cognitivos, permitimos o bypass para manter a operação básica
                 return True
 
         # 2. Executa Smart Ping de saúde
@@ -108,7 +109,7 @@ class CircuitBreakerV3:
 
                 # Se chegamos aqui e estávamos em HALF-OPEN ou CLOSED, resetamos
                 if self.state in ["HALF_OPEN", "OPEN"]:
-                    logger.info("🟢 [Circuit Breaker] Restauração detectada. Estado: CLOSED.")
+                    logger.info("[Circuit Breaker] Restauracao detectada. Estado: CLOSED.")
                 
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -120,8 +121,9 @@ class CircuitBreakerV3:
             
             if self.failure_count >= self.failure_threshold:
                 self._open_breaker(reason)
+                if is_cog:
+                    return False # Bloqueio imediato para eventos cognitivos
             
-            # Em Fase 1, não bloqueamos. Retornamos True para deixar a falha subir naturalmente
             return True
 
 # Global Instance
