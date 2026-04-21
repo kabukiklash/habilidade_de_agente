@@ -30,10 +30,11 @@ build/
 *.bak
 *.log
 
-# Databases
-*.db
-*.sqlite
-*.sqlite3
+# Databases (LIBERADOS PARA PERSISTÊNCIA TOTAL)
+# Adicionados para restaurar o estado após formatação
+# *.db
+# *.sqlite
+# *.sqlite3
 
 # External Projects / Submodules
 WORKSPACE/PROJETOS/AfixcontrolAfixgraf/
@@ -48,5 +49,5 @@ Habilidade_de_agente.rar
 *.log
 logs/
 **/logs/
-*.sqlite3
-*.db
+# *.sqlite3
+# *.db
