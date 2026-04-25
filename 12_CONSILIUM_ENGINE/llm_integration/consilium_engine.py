@@ -2,11 +2,18 @@ import asyncio
 import json
 import logging
 from typing import List, Dict, Any, Optional
-from .kimi_client import kimi_client
-from .inception_client import inception_client
-from .openai_client import openai_client
-from .minimax_client import minimax_client
-from .proactive_gatherer import gatherer
+try:
+    from kimi_client import kimi_client
+    from inception_client import inception_client
+    from openai_client import openai_client
+    from minimax_client import minimax_client
+    from proactive_gatherer import gatherer
+except (ImportError, ValueError):
+    from .kimi_client import kimi_client
+    from .inception_client import inception_client
+    from .openai_client import openai_client
+    from .minimax_client import minimax_client
+    from .proactive_gatherer import gatherer
 
 logger = logging.getLogger("ConsiliumEngine")
 

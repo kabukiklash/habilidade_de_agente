@@ -4,6 +4,8 @@ import importlib.util
 from pathlib import Path
 import time
 import requests
+import json
+from datetime import datetime
 
 # Configurações de Ambiente
 os.environ["PYTHONIOENCODING"] = "utf-8"
@@ -79,9 +81,43 @@ except Exception as e:
     print(f"❌ CMS OFFLINE: {e}")
 
 print("\nVerificando Banco de Dados...")
-dbs = ["antigravity.db", "evolution.db"]
-for db in dbs:
-    if (BASE_DIR / db).exists():
-        print(f"✅ DB {db} encontrado.")
+db_paths = {
+    "antigravity.db": BASE_DIR / "01_COGNITIVE_MEMORY_SERVICE" / "database" / "antigravity.db",
+    "evolution.db": BASE_DIR / "evolution.db"
+}
+
+for db_name, db_path in db_paths.items():
+    if db_path.exists():
+        print(f"✅ DB {db_name} encontrado.")
     else:
-        print(f"❌ DB {db} ausente.")
+        print(f"❌ DB {db_name} ausente no caminho: {db_path}")
+
+print("\nSalvando estado do sistema...")
+state = {
+    "last_check": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "cms_status": "ONLINE",
+    "db_evolution": (BASE_DIR / "evolution.db").exists(),
+    "db_antigravity": (BASE_DIR / "01_COGNITIVE_MEMORY_SERVICE/database/antigravity.db").exists(),
+    "modules_ready": True
+}
+
+with open(BASE_DIR / "system_state.json", "w") as f:
+    json.dump(state, f, indent=2)
+print(f"[OK] Estado salvo em system_state.json")
+
+print("\nInjetando DNA Soberano nos Workspaces...")
+import shutil
+global_rules_path = BASE_DIR / ".clinerules"
+projetos_dir = BASE_DIR / "WORKSPACE" / "PROJETOS"
+
+if global_rules_path.exists() and projetos_dir.exists():
+    for projeto in projetos_dir.iterdir():
+        if projeto.is_dir():
+            dest_path = projeto / ".clinerules"
+            try:
+                shutil.copy2(global_rules_path, dest_path)
+                print(f"🧬 DNA Injetado: {projeto.name}")
+            except Exception as e:
+                print(f"⚠️ Falha ao injetar em {projeto.name}: {e}")
+else:
+    print("⚠️ Regras globais ou pasta de projetos não encontradas.")

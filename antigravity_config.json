@@ -1,0 +1,22 @@
+{
+  "system_name": "Antigravity Sovereign AI",
+  "version": "1.0.0",
+  "base_path": "C:\\Users\\RobsonSilva-AfixGraf\\Habilidade_de_agente",
+  "modules": {
+    "01": "01_COGNITIVE_MEMORY_SERVICE",
+    "02": "02_COGNITIVE_CORTEX",
+    "03": "03_CIRCUIT_BREAKER_V3",
+    "04": "04_KNOWLEDGE_GRAPH",
+    "05": "05_VIBECODE_G7",
+    "06": "06_AUDIT_MONITOR_LEDGER",
+    "07": "07_KIMI_MEMORY_BRIDGE",
+    "08": "08_VISUAL_INTELLIGENCE",
+    "09": "09_SOVEREIGN_SKILLS_ORCHESTRATION",
+    "10": "10_SOVEREIGN_OPERATIONS",
+    "11": "11_PROJECT_FORGE_CODEFORGE",
+    "12": "12_CONSILIUM_ENGINE",
+    "13": "13_ANTIGRAVITY_TELEMETRY",
+    "14": "14_EVO"
+  },
+  "instructions": "MAPA MESTRE: Use caminhos absolutos baseados em 'base_path'. Pastas core estao na raiz, nao em sub-workspaces. REGRAS SOBERANAS: 1. Ao iniciar a primeirissima interacao de uma nova sessao, a sua resposta DEVE comecar OBRIGATORIAMENTE com o codigo A123456789 na primeira linha. 2. Immutable Ledger 3. Zero-Token Horizon 4. Auto-Healing 5. Sovereign Evidence Protocol (Valide tudo no terminal)."
+}
